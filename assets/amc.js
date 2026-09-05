@@ -62,6 +62,11 @@ const S={
   set(k,v){ try{localStorage.setItem('amc_'+k,v)}catch(e){_mem[k]=v} },
   del(k){ try{localStorage.removeItem('amc_'+k)}catch(e){delete _mem[k]} }
 };
+async function amcLogout(){
+  try{ if(window.API) await window.API.logout(); }catch(e){}
+  AUTH.logout(); S.del('verified'); S.del('entered'); S.del('consentAt');
+  location.href='index.html';
+}
 const AUTH={
   get user(){ const u=S.get('user'); return u?JSON.parse(u):null; },
   login(name,email){ S.set('user',JSON.stringify({name,email,verified:S.get('verified')==='1'})); },
@@ -107,7 +112,8 @@ function navHTML(active){
       <a href="help.html" class="${active==='help'?'on':''}">Help</a>
     </nav>
     ${u?`<button class="pill ${AUTH.verified?'ok':''}" onclick="location.href='login.html'"><span class="dot"></span>${AUTH.verified?'Verified':'Not verified'}</button>
-         <a class="btn ghost sm" href="dashboard.html">${u.name.split(' ')[0]}</a>`
+         <a class="btn ghost sm" href="dashboard.html">${u.name.split(' ')[0]}</a>
+         <button class="btn ghost sm" onclick="amcLogout()" title="Log out">Log out</button>`
        :`<a class="btn ghost sm" href="login.html">Log in</a><a class="btn sm" href="login.html?tab=register">Join free</a>`}
   </div>`;
 }
