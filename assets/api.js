@@ -10,6 +10,33 @@ const SUPABASE_KEY = 'YOUR_SUPABASE_PUBLISHABLE_KEY';
 
 const sb = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
 
+/* --- session recovery: pick up tokens from email-confirm redirects --- */
+(async function recoverSession(){
+  // Supabase appends #access_token=...&refresh_token=... after email confirmation.
+  // The client picks those up automatically IF we give it a moment to do so.
+  const { data:{ session } } = await sb.auth.getSession();
+  if (session) {
+    // sync the lightweight local AUTH state the pages read for UI
+    try {
+      const { data: profile } = await sb.from('profiles').select('*').eq('id', session.user.id).single();
+      const name = (profile && profile.name) || session.user.email.split('@')[0];
+      AUTH.login(name, session.user.email);
+      if (profile && profile.verified) AUTH.verify();
+    } catch(e) { /* profile may not exist yet if trigger hasn't fired */ }
+  }
+  // listen for future sign-in / sign-out so every tab stays in sync
+  sb.auth.onAuthStateChange(async (event, session) => {
+    if (event === 'SIGNED_IN' && session) {
+      try {
+        const { data: profile } = await sb.from('profiles').select('*').eq('id', session.user.id).single();
+        AUTH.login((profile && profile.name) || session.user.email.split('@')[0], session.user.email);
+        if (profile && profile.verified) AUTH.verify();
+      } catch(e) {}
+    }
+    if (event === 'SIGNED_OUT') { AUTH.logout(); }
+  });
+})();
+
 const API = {
   /* ---------- auth ---------- */
   async register(name, email, password, phone, postcode){
