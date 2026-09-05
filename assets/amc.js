@@ -30,17 +30,7 @@ function timerFor(lot){ return lot.featured?30:15; } // soft-close seconds
 /* ---------- MOCK LOTS (become API data later) ---------- */
 const CAR_SVG='<svg viewBox="0 0 200 110" fill="none"><path d="M18 78l10-30c2-6 7-10 14-10h66c6 0 11 3 14 8l16 22 26 6c5 1 8 5 8 10v8c0 3-2 5-5 5h-14" stroke="#5b6b86" stroke-width="3.4" stroke-linejoin="round" stroke-linecap="round"/><path d="M18 78h150" stroke="#5b6b86" stroke-width="3.4" stroke-linecap="round"/><path d="M52 38l-7 20h60l-12-20H52z" stroke="#5b6b86" stroke-width="3"/><circle cx="58" cy="80" r="13" fill="#fff" stroke="#5b6b86" stroke-width="3.4"/><circle cx="135" cy="80" r="13" fill="#fff" stroke="#5b6b86" stroke-width="3.4"/></svg>';
 
-const LOTS=[
- {id:'0118',week:0,make:'Peugeot',model:'208 1.2 PureTech Tech Edition',year:2019,miles:41200,reg:'GV19 XYZ',cat:'clean',fuel:'Petrol',eng:'1.2L',trans:'Manual',owners:1,mot:'Mar 2027',loc:'Birmingham',start:4200,reserve:5000,buyNow:null,featured:true,bids:9,cur:4700,vin:'VF3CCHMZ6KT123456',desc:'One owner from new, full service history, recent tyres.',damage:'No damage except normal wear and tear.'},
- {id:'0119',week:0,make:'Ford',model:'Fiesta 1.0 Zetec',year:2017,miles:58100,reg:'FE17 KLM',cat:'clean',fuel:'Petrol',eng:'1.0L',trans:'Manual',owners:2,mot:'Nov 2026',loc:'Solihull',start:3000,reserve:null,buyNow:4200,featured:true,bids:6,cur:3350,vin:'WF0DXXGAKDHA54321',desc:'Tidy example, two keys, drives well. No reserve — sells to the highest bid.',damage:'Small car-park dent on rear nearside door, photographed.'},
- {id:'0120',week:0,make:'Volkswagen',model:'Golf 1.4 TSI Match',year:2016,miles:72400,reg:'VG16 RT8',cat:'n',fuel:'Petrol',eng:'1.4L',trans:'Manual',owners:3,mot:'Jun 2026',loc:'Coventry',start:4500,reserve:6000,buyNow:null,featured:true,bids:12,cur:5300,vin:'WVWZZZAUZGW987654',desc:'Cat N — previously repaired light cosmetic damage, structurally sound.',damage:'Cat N recorded 2021: front bumper + wing resprayed. Fully declared with photos.'},
- {id:'0121',week:0,make:'BMW',model:'320d M Sport',year:2018,miles:64300,reg:'BM18 OPQ',cat:'clean',fuel:'Diesel',eng:'2.0L',trans:'Auto',owners:2,mot:'Jan 2027',loc:'Birmingham',start:8000,reserve:10500,buyNow:12500,featured:false,bids:8,cur:8900,vin:'WBA8E9C50JK112233',desc:'M Sport spec, leather, sat nav, recent major service.',damage:'No damage except normal wear and tear.'},
- {id:'0122',week:0,make:'Vauxhall',model:'Corsa 1.2 SE',year:2015,miles:49000,reg:'VC15 HJK',cat:'s',fuel:'Petrol',eng:'1.2L',trans:'Manual',owners:2,mot:'None — sold as project',loc:'Tyseley',start:1500,reserve:null,buyNow:null,featured:false,bids:4,cur:1750,vin:'W0L0XEP68F4098765',desc:'Cat S salvage. Front-end damage, airbags intact. Ideal repair project.',damage:'Cat S: front-end impact — bonnet, bumper, nearside headlight, radiator support. Airbags NOT deployed.'},
- {id:'0123',week:0,make:'Audi',model:'A3 35 TFSI Sport',year:2019,miles:38600,reg:'AU19 DVL',cat:'clean',fuel:'Petrol',eng:'1.5L',trans:'Auto',owners:1,mot:'Aug 2026',loc:'Wolverhampton',start:9000,reserve:12000,buyNow:null,featured:false,bids:11,cur:10600,vin:'WAUZZZ8V7KA445566',desc:'Low mileage, Virtual Cockpit, full Audi history.',damage:'No damage except normal wear and tear.'},
- {id:'0124',week:1,make:'Toyota',model:'Yaris 1.5 Hybrid Icon',year:2020,miles:31200,reg:'YH20 TRB',cat:'clean',fuel:'Hybrid',eng:'1.5L',trans:'Auto',owners:1,mot:'Feb 2027',loc:'Dudley',start:7500,reserve:9000,buyNow:null,featured:false,bids:5,cur:7900,vin:'VNKKD3B370A778899',desc:'Ex-motability, serviced on the button, superb economy.',damage:'No damage except normal wear and tear.'},
- {id:'0125',week:1,make:'Mercedes',model:'A180d AMG Line',year:2017,miles:69800,reg:'MA17 GLD',cat:'n',fuel:'Diesel',eng:'1.5L',trans:'Auto',owners:3,mot:'Oct 2026',loc:'Walsall',start:6000,reserve:8000,buyNow:9500,featured:false,bids:7,cur:6800,vin:'WDD1760122J334455',desc:'AMG Line, half-leather, reversing camera.',damage:'Cat N recorded 2022: rear bumper and boot lid replaced after low-speed shunt.'},
- {id:'0126',week:2,make:'Honda',model:'Civic 1.0 VTEC SR',year:2018,miles:44500,reg:'HC18 SRV',cat:'clean',fuel:'Petrol',eng:'1.0L',trans:'Manual',owners:1,mot:'May 2027',loc:'Birmingham',start:6500,reserve:null,buyNow:null,featured:false,bids:3,cur:6700,vin:'SHHFK2750JU667788',desc:'One owner, sensor pack, no reserve.',damage:'Stone chips to bonnet consistent with motorway miles; photographed.'}
-];
+const LOTS=[];   // live database is the only source of cars now
 const CATNAME={clean:'Clean',n:'Cat N',s:'Cat S'};
 
 /* ---------- auction dates ---------- */
@@ -88,7 +78,7 @@ function toast(msg,kind){ let box=document.querySelector('.toasts'); if(!box){bo
 function lotCard(l){
   const v=AUTH.verified;
   return `<article class="card" onclick="location.href='lot.html?lot=${l.id}'">
-    <div class="ph">${CAR_SVG}<span class="badge lotno">LOT ${l.id}</span>${catBadge(l.cat)}${l.featured?'<span class="badge feat">★ Featured</span>':''}</div>
+    <div class="ph">${CAR_SVG}<span class="badge lotno">LOT ${l.no||l.id}</span>${catBadge(l.cat)}${l.featured?'<span class="badge feat">★ Featured</span>':''}</div>
     <div class="cb">
       <div class="nm">${l.year} ${l.make} ${l.model}</div>
       <div class="meta">${plate(l.reg,!v)}<span>· ${l.miles.toLocaleString()} mi</span><span>· ${l.fuel}</span></div>
