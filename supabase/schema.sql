@@ -55,7 +55,7 @@ create table public.auctions (
 -- ---------- lots ----------
 create table public.lots (
   id            uuid primary key default gen_random_uuid(),
-  lot_no        int generated always as identity (start with 200),
+  lot_no        int generated always as identity (start with 1),
   seller_id     uuid not null references public.profiles(id),
   auction_id    uuid not null references public.auctions(id),
   make          text not null,
