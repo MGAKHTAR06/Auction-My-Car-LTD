@@ -65,7 +65,7 @@
   function specRow(k,val,lock){ return `<div><div class="k">${k}</div><div class="vv ${lock?'locked':''}">${val}</div></div>`; }
 
   function renderPage(){
-  document.title=`${l.year} ${l.make} ${l.model} — Lot ${l.no} · Auction My Car`;
+  document.title=`${l.year} ${l.make} ${l.model} — Lot ${String(l.no).padStart(4,'0')} · Auction My Car`;
   document.getElementById('page').innerHTML=`
   <div>
     <div class="gallery">${CAR_SVG}<span class="badge lotno">LOT ${l.id}</span>${catBadge(l.cat)}${l.featured?'<span class="badge feat">★ Featured · 30s hammer</span>':''}</div>
