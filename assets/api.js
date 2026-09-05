@@ -131,6 +131,31 @@ const API = {
     return data && data[0];
   },
 
+  /* ---------- phase 2: the live auction engine ---------- */
+  async liveState(){
+    const { data, error } = await sb.rpc('live_state');
+    if (error) throw error;
+    return data;
+  },
+  async hammer(auctionId){
+    const { data, error } = await sb.rpc('hammer_current', { p_auction: auctionId });
+    if (error) throw error;
+    return data;
+  },
+  async startAuction(auctionId){
+    const { error } = await sb.rpc('start_auction', { p_auction: auctionId });
+    if (error) throw error;
+  },
+  async setSkipped(auctionId, skip){
+    const { error } = await sb.rpc('set_auction_skipped', { p_auction: auctionId, p_skip: skip });
+    if (error) throw error;
+  },
+  async upcomingAuctions(){
+    const { data, error } = await sb.rpc('upcoming_auctions');
+    if (error) throw error;
+    return data || [];
+  },
+
   /* ---------- realtime: the phase-2 seam, already usable ---------- */
   watchBids(lotId, onBid){
     try {
