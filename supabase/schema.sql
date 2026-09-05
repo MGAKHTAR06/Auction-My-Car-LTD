@@ -324,6 +324,21 @@ language sql stable security definer set search_path=public as $$
    where b.lot_id=p_lot order by b.amount desc limit 10;
 $$;
 
+create or replace function public.my_bids()
+returns table (lot_id uuid, lot_no int, make text, model text, year int,
+               my_best int, current_top bigint, i_lead boolean, lot_status lot_status)
+language sql stable security definer set search_path=public as $$
+  select l.id, l.lot_no, l.make, l.model, l.year,
+         max(b.amount) filter (where b.bidder_id = auth.uid()),
+         (select max(amount) from bids b2 where b2.lot_id = l.id)::bigint,
+         (select bidder_id from bids b3 where b3.lot_id = l.id order by amount desc, created_at asc limit 1) = auth.uid(),
+         l.status
+    from bids b join lots l on l.id = b.lot_id
+   where b.bidder_id = auth.uid()
+   group by l.id
+   order by max(b.created_at) desc;
+$$;
+
 create or replace function public.my_listings()
 returns setof lots language sql stable security definer set search_path=public as
 $$ select * from lots where seller_id = auth.uid() order by created_at desc $$;
