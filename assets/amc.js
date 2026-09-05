@@ -124,8 +124,12 @@ function footHTML(){
     <span class="plate"><span class="gb">UK</span><span class="num">AMC 1</span></span>
   </div>`;
 }
-document.addEventListener('DOMContentLoaded',()=>{
+function renderNav(){
   const h=document.querySelector('header.site'); if(h) h.innerHTML=navHTML(h.dataset.page||'');
+}
+window.renderNav=renderNav;
+document.addEventListener('DOMContentLoaded',()=>{
+  renderNav();
   const f=document.querySelector('footer.site'); if(f) f.innerHTML=footHTML();
 });
 
