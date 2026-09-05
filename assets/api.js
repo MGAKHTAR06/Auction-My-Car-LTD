@@ -102,6 +102,11 @@ const API = {
     if (error) throw error;
     return data || [];
   },
+  async myWins(){
+    const { data, error } = await sb.rpc('my_wins');
+    if (error) throw error;
+    return data || [];
+  },
   async myListings(){
     const { data, error } = await sb.rpc('my_listings');
     if (error) throw error;
@@ -154,6 +159,36 @@ const API = {
     const { data, error } = await sb.rpc('upcoming_auctions');
     if (error) throw error;
     return data || [];
+  },
+
+  /* ---------- admin panel ---------- */
+  async adminStats(){
+    const { data, error } = await sb.rpc('admin_stats');
+    if (error) throw error; return data;
+  },
+  async adminPending(){
+    const { data, error } = await sb.rpc('admin_pending_lots');
+    if (error) throw error; return data || [];
+  },
+  async adminRecent(){
+    const { data, error } = await sb.rpc('admin_recent_lots');
+    if (error) throw error; return data || [];
+  },
+  async adminUsers(){
+    const { data, error } = await sb.rpc('admin_users');
+    if (error) throw error; return data || [];
+  },
+  async adminSetSetting(key, value){
+    const { error } = await sb.rpc('admin_set_setting', { p_key: key, p_value: value });
+    if (error) throw error;
+  },
+  async approveListing(lotId){
+    const { error } = await sb.rpc('approve_listing', { p_lot: lotId });
+    if (error) throw error;
+  },
+  async rejectListing(lotId, reason){
+    const { error } = await sb.rpc('reject_listing', { p_lot: lotId, p_reason: reason });
+    if (error) throw error;
   },
 
   /* ---------- realtime: the phase-2 seam, already usable ---------- */
