@@ -20,6 +20,11 @@
     <button onclick="show('register')">Create account</button>
   </div>
 
+  <div id="emailNote" class="panel hide" style="background:var(--amber-050);border-color:#f0d590;margin-bottom:14px">
+    <b>📧 Check your email to confirm your account</b>
+    <p style="margin:6px 0 0;font-size:13.5px;color:var(--text)">The confirmation email comes from <b>noreply@mail.app.supabase.io</b> — check your spam/junk folder if you don't see it. Once confirmed, come back here and log in.</p>
+  </div>
+
   <form id="login" class="panel" onsubmit="event.preventDefault();doLogin()">
     <h3>Welcome back</h3><p class="sub">Log in to bid, sell and track your auctions.</p>
     <div class="field"><label>Email</label><input type="email" id="li-email" required placeholder="you@email.com"></div>
@@ -81,6 +86,11 @@
     document.getElementById('tabs').classList.toggle('hide',w==='verify'||w==='account');
     tb[0].classList.toggle('on',w==='login'); tb[1].classList.toggle('on',w==='register');
   }
+  function errText(e){
+    console.error('Auth error:', e);
+    return e && (e.message || e.error_description || (e.status ? 'Request failed (HTTP '+e.status+')' : '') )
+           || 'Something went wrong — check the browser console (F12) for details';
+  }
   async function doLogin(){
     const email=document.getElementById('li-email').value;
     const pass=document.querySelector('#login input[type=password]').value;
@@ -90,7 +100,7 @@
       if(me&&me.profile&&me.profile.verified) AUTH.verify();
       AUTH.login((me&&me.profile&&me.profile.name)||email.split('@')[0],email);
       toast('Logged in','good'); if(window.renderNav) renderNav(); after();
-    }catch(e){ toast(e.message||'Login failed','bad'); }
+    }catch(e){ toast(errText(e),'bad'); }
   }
   async function doRegister(){
     const name=document.getElementById('rg-first').value+' '+document.getElementById('rg-last').value;
@@ -104,9 +114,10 @@
       } else {                           // confirmation ON -> confirm, then log in
         show('login');
         document.getElementById('li-email').value=email;
-        toast('Account created — click the link in your email, then log in here to continue','good');
+        document.getElementById('emailNote').classList.remove('hide');
+        toast('Account created — check your email (including spam/junk)','good');
       }
-    }catch(e){ toast(e.message||'Could not create account','bad'); }
+    }catch(e){ toast(errText(e),'bad'); }
   }
   async function doVerify(){
     const me=await API.me().catch(()=>null);
@@ -120,7 +131,7 @@
       if(window.renderNav) renderNav();
       toast('Verified — bidding and selling unlocked','good');
       setTimeout(after,700);
-    }catch(e){ toast(e.message||'Verify failed','bad'); }
+    }catch(e){ toast(errText(e),'bad'); }
   }
   function after(){
     const next=P.get('next'); if(next){ location.href=next; return; }
