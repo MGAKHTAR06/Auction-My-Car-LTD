@@ -42,7 +42,7 @@
 
     <div class="panel" id="won" style="margin-bottom:20px">
       <h3>Won auctions</h3><p class="sub">Pay within 72 hours, collect, upload evidence, confirm.</p>
-      <div id="wonbox"><p class="help">Nothing here yet — wins appear after the Saturday close runs (phase 2).</p></div>
+      <div id="wonbox"><p class="help">Loading…</p></div>
     </div>
 
     <div class="panel" id="watch">
@@ -84,10 +84,36 @@
 <script>
   if(!AUTH.user) location.href='login.html?next=dashboard.html';
   document.getElementById('hello').textContent='Hi, '+(AUTH.user?AUTH.user.name.split(' ')[0]:'')+' 👋';
+  API.myWins().then(wins=>{
+    document.getElementById('k-won').textContent = wins.filter(w=>w.lot_status==='sold').length;
+    document.getElementById('wonbox').innerHTML = wins.length ? wins.map(w=>{
+      const won = w.lot_status==='sold';
+      return `<div class="won" data-deadline="${w.payment_deadline||''}">
+        <div style="display:flex;justify-content:space-between;gap:10px;flex-wrap:wrap;align-items:center">
+          <b>Lot ${String(w.lot_no).padStart(4,'0')} · ${w.year} ${w.make} ${w.model} — won at £${Math.round(w.price/100).toLocaleString()}</b>
+          ${won?'<span class="deadline" data-clock>Pay within 72h</span>':'<span class="tag m">'+w.lot_status+'</span>'}
+        </div>
+        ${won?`<div style="display:flex;gap:10px;margin-top:12px;flex-wrap:wrap">
+          <a class="btn" href="checkout.html?lot=${w.lot_id}">Pay now</a>
+          <button class="btn ghost sm" onclick="toast('Miss the 72-hour deadline and the £50 hold is captured (£25 seller / £25 platform) — and the bid stays binding','warn')">What if I'm late?</button>
+        </div>`:''}
+      </div>`;
+    }).join('') : '<p class="help">No wins yet — they appear here the moment a lot hammers to you.</p>';
+    setInterval(()=>{
+      document.querySelectorAll('.won[data-deadline]').forEach(el=>{
+        const d=el.dataset.deadline, c=el.querySelector('[data-clock]');
+        if(!d||!c) return;
+        let s=Math.max(0,Math.floor((new Date(d).getTime()-Date.now())/1000));
+        const h=Math.floor(s/3600),m=Math.floor(s%3600/60);
+        c.textContent = s>0 ? `Pay within ${h}h ${String(m).padStart(2,'0')}m` : 'Payment overdue';
+        if(s<=0){ c.style.background='var(--red-050)'; c.style.color='var(--red)'; }
+      });
+    },1000);
+  }).catch(e=>{ document.getElementById('wonbox').innerHTML='<p class="err">Could not load wins: '+(e.message||e)+'</p>'; });
+
   API.myBids().then(rows=>{
     document.getElementById('k-active').textContent=rows.filter(r=>r.lot_status==='listed').length;
     document.getElementById('k-lead').textContent=rows.filter(r=>r.i_lead&&r.lot_status==='listed').length;
-    document.getElementById('k-won').textContent=rows.filter(r=>r.lot_status==='sold'&&r.i_lead).length;
     document.getElementById('bidsbox').innerHTML = rows.length ? `
       <table class="tbl"><tr><th>Lot</th><th>Your best bid</th><th>Current top</th><th>Status</th></tr>
       ${rows.map(r=>`<tr onclick="location.href='lot.html?lot=${r.lot_id}'" style="cursor:pointer">
