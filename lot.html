@@ -133,7 +133,7 @@
       const h=await API.bidHistory(id).catch(()=>[]);
       history=h.map(b=>({who:b.masked, amt:Math.round(b.amount/100)}));
       renderPage();
-      const sim=API.watchBids(id, b=>{ toast('New bid: '+fmt(Math.round(b.amount/100)),'warn'); loadLot(); });
+      try{ API.watchBids(id, b=>{ toast('New bid: '+fmt(Math.round(b.amount/100)),'warn'); loadLot(); }); }catch(e){}
       document.getElementById('similar').innerHTML='';
       API.browse().then(rows=>{
         document.getElementById('similar').innerHTML=rows.filter(x=>x.id!==id).slice(0,3).map(r2=>lotCard(liveLotToCard(r2))).join('')||'';
