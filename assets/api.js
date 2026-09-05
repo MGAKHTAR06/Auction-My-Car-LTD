@@ -196,7 +196,7 @@ const API = {
     try {
       const chan = sb.channel('bids-'+lotId);
       chan.on('postgres_changes',
-          { event:'insert', schema:'public', table:'bids', filter:'lot_id=eq.'+lotId },
+          { event:'INSERT', schema:'public', table:'bids', filter:'lot_id=eq.'+lotId },
           payload => onBid(payload.new));
       chan.subscribe((status) => {
         if (status === 'SUBSCRIBED') console.log('Realtime: watching bids on', lotId);
