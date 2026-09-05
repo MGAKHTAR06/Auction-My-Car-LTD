@@ -63,7 +63,7 @@
     <div style="display:flex;gap:10px;flex-wrap:wrap">
       <a class="btn" href="dashboard.html">Buyer dashboard</a>
       <a class="btn ghost" href="seller.html">Seller dashboard</a>
-      <button class="btn ghost" onclick="AUTH.logout();location.reload()">Log out</button>
+      <button class="btn ghost" onclick="amcLogout()">Log out</button>
     </div>
     <div id="acc-verify"></div>
   </div>
@@ -98,18 +98,28 @@
     const pass=document.querySelector('#register input[type=password]').value;
     const tel=document.querySelector('#register input[type=tel]').value;
     try{
-      await API.register(name,email,pass,tel,'');
-      AUTH.login(name,email);
-      toast('Account created — check your inbox to confirm your email','good');
-      show('verify');
+      const res=await API.register(name,email,pass,tel,'');
+      if(res && res.session){            // email confirmation OFF -> signed in already
+        AUTH.login(name,email); show('verify');
+      } else {                           // confirmation ON -> confirm, then log in
+        show('login');
+        document.getElementById('li-email').value=email;
+        toast('Account created — click the link in your email, then log in here to continue','good');
+      }
     }catch(e){ toast(e.message||'Could not create account','bad'); }
   }
   async function doVerify(){
+    const me=await API.me().catch(()=>null);
+    if(!me){
+      show('login');
+      toast('Please log in first (after confirming your email), then verify','warn');
+      return;
+    }
     try{
       await API.verifyMe(); AUTH.verify();
       toast('Verified — bidding and selling unlocked','good');
       setTimeout(after,700);
-    }catch(e){ toast(e.message||'Verify failed — are you logged in and email-confirmed?','bad'); }
+    }catch(e){ toast(e.message||'Verify failed','bad'); }
   }
   function after(){
     const next=P.get('next'); if(next){ location.href=next; return; }
@@ -121,6 +131,16 @@
     document.getElementById('acc-line').textContent=`Logged in as ${u.name} (${u.email}) · ${AUTH.verified?'Verified member':'Not verified yet'}`;
     document.getElementById('acc-verify').innerHTML=AUTH.verified?'':'<button class="btn green block" style="margin-top:14px" onclick="show(\'verify\')">Verify now (£5, once)</button>';
   }
+  // sync with the real Supabase session on arrival (handles the email-confirm redirect)
+  API.me().then(me=>{
+    if(me){
+      AUTH.login((me.profile&&me.profile.name)||me.user.email.split('@')[0], me.user.email);
+      if(me.profile&&me.profile.verified) AUTH.verify();
+      if(!P.get('verify')) showAccount();
+      else if(!me.profile||!me.profile.verified) show('verify');
+      else showAccount();
+    }
+  }).catch(()=>{});
   if(P.get('tab')==='register') show('register');
   if(P.get('verify')==='1'){ if(AUTH.user){ AUTH.verified?showAccount():show('verify'); } else show('register'); }
   else if(AUTH.user) showAccount();
