@@ -153,7 +153,7 @@ window.API = API;
 /* Map a live database lot onto the shape the existing card renderer expects */
 function liveLotToCard(r){
   return {
-    id: r.id, live: true, no: String(r.lot_no),
+    id: r.id, live: true, no: String(r.lot_no).padStart(4,'0'),
     make: r.make, model: r.model, year: r.year, miles: r.mileage,
     reg: r.reg || '•••• •••', cat: r.cat, fuel: r.fuel,
     cur: Math.round(r.current_pence/100), bids: Number(r.bid_count),
