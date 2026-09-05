@@ -34,6 +34,8 @@
 
 <footer class="site"></footer>
 <script src="assets/amc.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script src="assets/api.js"></script>
 <script>
   const makeSel=document.getElementById('fMake');
   [...new Set(LOTS.map(l=>l.make))].sort().forEach(m=>makeSel.insertAdjacentHTML('beforeend',`<option>${m}</option>`));
@@ -59,5 +61,15 @@
   }
   const p=new URLSearchParams(location.search); if(p.get('q')) document.getElementById('q').value=p.get('q');
   draw(); startClocks();
+  // pull real lots from the live database and put them ahead of the demo cars
+  API.browse().then(rows=>{
+    if(!rows.length) return;
+    const live=rows.map(liveLotToCard);
+    LOTS.length && live.push(...LOTS);          // demo cars stay as filler while stock builds
+    LOTS.splice(0, LOTS.length, ...live);
+    const sel=document.getElementById('fMake'); sel.innerHTML='<option value="">All makes</option>';
+    [...new Set(LOTS.map(l=>l.make))].sort().forEach(m=>sel.insertAdjacentHTML('beforeend',`<option>${m}</option>`));
+    draw();
+  }).catch(()=>{});
 </script>
 </body></html>
