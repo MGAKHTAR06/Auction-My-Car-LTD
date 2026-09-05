@@ -115,20 +115,30 @@
 <footer class="site"></footer>
 
 <script src="assets/amc.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script src="assets/api.js"></script>
 <script>
-  document.getElementById('lotcount').textContent=LOTS.length;
-  // Featured rotation: 3 per slide across the featured pool (cap 21)
-  const featured=LOTS.filter(l=>l.featured);
-  const slides=[]; for(let i=0;i<featured.length;i+=3) slides.push(featured.slice(i,i+3));
-  let slide=0;
-  function drawFeat(){
-    document.getElementById('featgrid').innerHTML=slides[slide].map(lotCard).join('');
-    document.getElementById('featdots').innerHTML=slides.map((_,i)=>`<button class="${i===slide?'on':''}" aria-label="Slide ${i+1}" onclick="goSlide(${i})"></button>`).join('');
-  }
-  function goSlide(i){slide=i;drawFeat();}
-  drawFeat();
-  if(slides.length>1) setInterval(()=>{slide=(slide+1)%slides.length;drawFeat();},6000);
-  document.getElementById('recentgrid').innerHTML=LOTS.filter(l=>!l.featured).slice(0,4).map(lotCard).join('');
   startClocks();
+  const EMPTY = '<div style="grid-column:1/-1;padding:40px 20px;text-align:center;color:var(--muted);background:var(--grey);border-radius:14px">No cars in this section yet — <a href="sell.html" style="color:var(--red-brand);font-weight:700">be the first to list</a>.</div>';
+  API.browse().then(rows=>{
+    const cars = rows.map(liveLotToCard);
+    document.getElementById('lotcount').textContent = cars.length;
+    const featured = cars.filter(c=>c.featured), rest = cars.filter(c=>!c.featured);
+    // featured rotation: 3 per slide
+    const slides=[]; for(let i=0;i<featured.length;i+=3) slides.push(featured.slice(i,i+3));
+    let slide=0;
+    function drawFeat(){
+      document.getElementById('featgrid').innerHTML = slides.length ? slides[slide].map(lotCard).join('') : EMPTY;
+      document.getElementById('featdots').innerHTML = slides.map((_,i)=>`<button class="${i===slide?'on':''}" aria-label="Slide ${i+1}" onclick="goSlide(${i})"></button>`).join('');
+    }
+    window.goSlide = i=>{slide=i;drawFeat();};
+    drawFeat();
+    if(slides.length>1) setInterval(()=>{slide=(slide+1)%slides.length;drawFeat();},6000);
+    document.getElementById('recentgrid').innerHTML = rest.length ? rest.slice(0,4).map(lotCard).join('') : EMPTY;
+  }).catch(e=>{
+    document.getElementById('featgrid').innerHTML = EMPTY;
+    document.getElementById('recentgrid').innerHTML = EMPTY;
+    toast('Could not load cars: '+(e.message||e),'bad');
+  });
 </script>
 </body></html>
