@@ -133,11 +133,19 @@ const API = {
 
   /* ---------- realtime: the phase-2 seam, already usable ---------- */
   watchBids(lotId, onBid){
-    return sb.channel('bids-'+lotId)
-      .on('postgres_changes',
+    try {
+      const chan = sb.channel('bids-'+lotId);
+      chan.on('postgres_changes',
           { event:'insert', schema:'public', table:'bids', filter:'lot_id=eq.'+lotId },
-          payload => onBid(payload.new))
-      .subscribe();
+          payload => onBid(payload.new));
+      chan.subscribe((status) => {
+        if (status === 'SUBSCRIBED') console.log('Realtime: watching bids on', lotId);
+      });
+      return chan;
+    } catch(e) {
+      console.warn('Realtime not available yet (phase 2):', e.message);
+      return null;
+    }
   }
 };
 window.API = API;
