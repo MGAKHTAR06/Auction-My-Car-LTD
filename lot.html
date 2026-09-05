@@ -54,9 +54,12 @@
 
 <footer class="site"></footer>
 <script src="assets/amc.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script src="assets/api.js"></script>
 <script>
   const id=new URLSearchParams(location.search).get('lot')||LOTS[0].id;
-  const l=LOTS.find(x=>x.id===id)||LOTS[0];
+  const isLive=/^[0-9a-f-]{36}$/.test(id);
+  let l=LOTS.find(x=>x.id===id)||LOTS[0];
   document.title=`${l.year} ${l.make} ${l.model} — Lot ${l.id} · Auction My Car`;
   const v=AUTH.verified, u=AUTH.user;
   const minNext=l.cur+increment(l.cur);
@@ -121,13 +124,18 @@
 
   document.getElementById('similar').innerHTML=LOTS.filter(x=>x.id!==l.id).slice(0,3).map(lotCard).join('');
 
-  function tryBid(){
+  async function tryBid(){
     if(!u){ location.href='login.html?next=lot.html?lot='+l.id; return; }
     if(!v){ location.href='login.html?verify=1'; return; }
     if(!AUTH.entered){ document.getElementById('enterScrim').classList.add('open'); return; }
     const amt=parseInt(document.getElementById('bidAmt').value.replace(/[^\d]/g,''),10);
     const hint=document.getElementById('bidHint');
     if(!amt){ hint.className='err'; hint.textContent='Enter an amount.'; return; }
+    if(isLive){
+      try{ await API.placeBid(l.id, amt); toast('Pre-bid placed — recorded in the live database','good'); }
+      catch(e){ hint.className='err'; hint.textContent=e.message; }
+      return;
+    }
     if(amt<Math.max(minNext,MIN_BID)){ hint.className='err'; hint.textContent=`Your bid must be at least ${fmt(Math.max(minNext,MIN_BID))}.`; return; }
     l.cur=amt; l.bids++;
     toast('Pre-bid placed — you\'re the high bidder','good');
@@ -141,12 +149,22 @@
     if(!AUTH.entered){ document.getElementById('enterScrim').classList.add('open'); return; }
     location.href='checkout.html?lot='+l.id+'&mode=buynow';
   }
-  function confirmEnter(){
+  async function confirmEnter(){
     if(!document.getElementById('c1').checked||!document.getElementById('c2').checked){ toast('Both boxes are required to enter','warn'); return; }
+    if(isLive){ try{ const a=await API.nextAuction(); await API.enterAuction(a.id); }catch(e){ toast(e.message,'bad'); return; } }
     AUTH.enter();
     document.getElementById('enterScrim').classList.remove('open');
     toast('£50 hold authorised — you can bid all week','good');
   }
   startClocks();
+  if(isLive){
+    // load the real lot, re-render, and subscribe to live bid pushes (the phase-2 seam)
+    API.lot(id).then(r=>{ if(!r) return;
+      l=liveLotToCard(r); l.desc=r.description; l.damage=r.damage||'Verify to read the declaration.';
+      l.trans=r.transmission; l.owners=r.owners; l.mot=r.mot; l.vin=r.vin||'Hidden';
+      location.hash=''; document.title=`${l.year} ${l.make} ${l.model} — Auction My Car`;
+      API.watchBids(id, b=>{ toast('New bid: '+fmt(Math.round(b.amount/100)),'warn'); });
+    }).catch(()=>{});
+  }
 </script>
 </body></html>
