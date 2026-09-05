@@ -8,7 +8,9 @@
 const SUPABASE_URL = 'https://YOUR_PROJECT_ID.supabase.co';
 const SUPABASE_KEY = 'YOUR_SUPABASE_PUBLISHABLE_KEY';
 
-const sb = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+const sb = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY, {
+  auth: { flowType: 'implicit', detectSessionInUrl: true, persistSession: true, autoRefreshToken: true }
+});
 
 /* --- session recovery: pick up tokens from email-confirm redirects --- */
 (async function recoverSession(){
