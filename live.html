@@ -6,44 +6,52 @@
 <link rel="stylesheet" href="assets/amc.css">
 <style>
   body{background:var(--grey)}
-  .roomhead{background:var(--navy);color:#fff;padding:22px 0;border-bottom:4px solid var(--blue)}
+  .roomhead{background:var(--navy);color:#fff;padding:22px 0;border-bottom:4px solid var(--red-brand)}
   .roomhead .wrap{display:flex;align-items:center;gap:16px;flex-wrap:wrap}
-  .livebadge{display:inline-flex;align-items:center;gap:8px;background:rgba(220,53,69,.15);border:1px solid rgba(220,53,69,.5);
-    color:#ff8a95;font-weight:800;font-size:12px;letter-spacing:.1em;padding:6px 12px;border-radius:999px}
-  .livebadge .d{width:9px;height:9px;border-radius:50%;background:var(--red);animation:blink 1.1s infinite}
+  .livebadge{display:inline-flex;align-items:center;gap:8px;background:rgba(226,59,51,.16);border:1px solid rgba(226,59,51,.55);
+    color:#ff9d97;font-weight:800;font-size:12px;letter-spacing:.1em;padding:6px 12px;border-radius:999px}
+  .livebadge .d{width:9px;height:9px;border-radius:50%;background:var(--red-brand);animation:blink 1.1s infinite}
+  .livebadge.wait{background:rgba(255,255,255,.08);border-color:rgba(255,255,255,.25);color:#cbd5e1}
+  .livebadge.wait .d{background:#cbd5e1;animation:none}
   @keyframes blink{50%{opacity:.25}}
   .stage{background:#fff;border:1px solid var(--line);border-radius:18px;box-shadow:var(--shadow);overflow:hidden}
   .stage .ph{aspect-ratio:16/8;background:radial-gradient(120% 90% at 20% 0%,#dbe7fb,#b7c6e0);display:grid;place-items:center;position:relative}
   .stage .ph svg{width:46%;opacity:.55}
   .stagebody{padding:20px 22px}
   .hammerrow{display:flex;gap:20px;align-items:center;flex-wrap:wrap}
-  .pricebig{font-size:44px;font-weight:800;letter-spacing:-.01em}
+  .pricebig{font-size:44px;font-weight:800;letter-spacing:-.01em;color:var(--navy)}
   .pricebig.flash{animation:pop .4s ease}
   @keyframes pop{0%{color:var(--green);transform:scale(1.06)}100%{transform:none}}
-  .feed{max-height:280px;overflow:auto;display:flex;flex-direction:column-reverse;gap:6px;padding:4px 2px}
+  .feed{max-height:280px;overflow:auto;display:flex;flex-direction:column;gap:6px;padding:4px 2px}
   .feed .f{background:#fff;border:1px solid var(--line);border-radius:9px;padding:8px 11px;font-size:13px;display:flex;justify-content:space-between}
-  .feed .f.you{border-color:#bcd7ff;background:var(--blue-050)}
+  .feed .f.you{border-color:#f3b6b2;background:var(--red-050)}
   .feed .f.hammer{background:var(--green-050);border-color:#bfe6c9;font-weight:700}
   .feed .amt{font-family:"JetBrains Mono",monospace;font-weight:700}
-  .quickbid{display:flex;gap:10px;margin-top:14px;flex-wrap:wrap}
-  .sold-stamp{position:absolute;inset:0;display:grid;place-items:center;background:rgba(10,42,99,.45)}
-  .sold-stamp span{font-size:44px;font-weight:800;color:#fff;background:var(--green);padding:10px 34px;border-radius:14px;transform:rotate(-6deg);letter-spacing:.04em;box-shadow:0 18px 50px rgba(0,0,0,.35)}
-  .sold-stamp span.un{background:var(--muted)}
+  .waitcard{background:#fff;border:1px solid var(--line);border-radius:18px;box-shadow:var(--shadow);padding:44px 28px;text-align:center}
+  .admin-strip{margin-top:16px;background:var(--amber-050);border:1px dashed #f0d590;border-radius:12px;padding:12px 16px;display:none;
+    align-items:center;gap:12px;flex-wrap:wrap;font-size:13px}
+  .admin-strip.show{display:flex}
 </style></head><body>
 
 <header class="site" data-page="live"></header>
 
 <div class="roomhead"><div class="wrap">
-  <span class="livebadge"><span class="d"></span> LIVE AUCTION ROOM</span>
-  <div style="font-weight:700">Saturday's auction · <span id="lotpos"></span></div>
+  <span class="livebadge wait" id="badge"><span class="d"></span><span id="badgeText">CONNECTING…</span></span>
+  <div style="font-weight:700;color:#fff" id="headline">Saturday's auction</div>
   <div class="grow"></div>
-  <div style="font-size:13px;color:#cfe0fb">Featured lots hammer on a <b style="color:#fff">30s</b> timer · all others <b style="color:#fff">15s</b></div>
+  <div style="font-size:13px;color:#cfe0fb">Featured lots hammer on <b style="color:#fff">30s</b> · all others <b style="color:#fff">15s</b> · every bid resets the clock in full</div>
 </div></div>
 
 <div class="wrap" style="padding:24px 0">
   <div class="lane">
     <div>
-      <div class="stage" id="stage"></div>
+      <div id="stagebox"></div>
+      <div class="admin-strip" id="adminStrip">
+        <b>🔒 Operator</b>
+        <button class="btn sm" id="btnStart" onclick="adminStart()">Start auction now</button>
+        <button class="btn ghost sm" id="btnSkip" onclick="adminSkip()">Skip this auction</button>
+        <span class="help" id="adminNote">Auto-starts at the scheduled time unless skipped.</span>
+      </div>
       <div style="margin-top:16px">
         <div class="eyebrow" style="margin-bottom:8px">Up next</div>
         <div class="upnext" id="upnext"></div>
@@ -52,16 +60,28 @@
     <div>
       <div class="panel">
         <h3>Bid feed</h3>
-        <p class="sub">Every bid resets the hammer timer in full.</p>
+        <p class="sub" id="feedsub">Live from the database — every bid, every screen, same instant.</p>
         <div class="feed" id="feed"></div>
       </div>
       <div class="panel" style="margin-top:16px">
         <h3>Results so far</h3>
-        <div id="results" style="font-size:13.5px"><p class="sub" style="margin:0">First lot is on the block.</p></div>
+        <div id="results" style="font-size:13.5px"><p class="sub" style="margin:0">Nothing hammered yet.</p></div>
       </div>
     </div>
   </div>
-  <p class="help" style="margin-top:18px">Preview room: these are the REAL approved lots, but the timer and rival bidders are simulated in your browser and nothing here writes to the database. Phase 2 makes this fully live over Supabase Realtime — same screen, server-decided timer.</p>
+</div>
+
+<!-- enter-auction: the £50 hold + the two consents -->
+<div class="scrim" id="enterScrim">
+  <div class="modal">
+    <h3>Enter this auction</h3>
+    <p>Bidding needs a <b>£50 card hold</b> — released in full after the auction if you don't win, credited to your payment if you do. <i>(Hold is recorded now; the real card authorisation arrives with Stripe in phase 3.)</i></p>
+    <label class="checkline"><input type="checkbox" id="c1"> I accept the <a href="terms.html" style="color:var(--red-brand)">Terms and Conditions</a>.</label>
+    <label class="checkline"><input type="checkbox" id="c2"> I understand that <b>all bids placed in this auction are legally binding</b>.</label>
+    <p class="help" style="margin:8px 0 16px">Both acceptances are recorded with a timestamp against your account for this auction.</p>
+    <button class="btn block" onclick="confirmEnter()">Enter auction</button>
+    <button class="btn ghost block" style="margin-top:8px" onclick="document.getElementById('enterScrim').classList.remove('open')">Not now</button>
+  </div>
 </div>
 
 <footer class="site"></footer>
@@ -69,109 +89,216 @@
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <script src="assets/api.js"></script>
 <script>
-  // running order: featured first (first-paid-first-placed), then the rest — from the LIVE database
-  let ORDER=[], idx=0, cur=null, price=0, t=0, timerId=null, mine=false, done=[];
-  API.browse().then(rows=>{
-    const cars=rows.map(liveLotToCard);
-    ORDER=[...cars.filter(l=>l.featured),...cars.filter(l=>!l.featured)];
-    if(!ORDER.length){
-      document.getElementById('stage').innerHTML='<div style="padding:60px 24px;text-align:center;color:var(--muted)">No approved lots in the auction yet. <a href="sell.html" style="color:var(--red-brand);font-weight:700">List a car</a> and it appears here once approved.</div>';
-      document.getElementById('lotpos').textContent='No lots yet';
+  let ST=null, offset=0, bidChan=null, aucChan=null, hammering=false, lastLot=null, me=null;
+
+  const $=id=>document.getElementById(id);
+  function srvNow(){ return Date.now()+offset; }
+  function pounds(p){ return '£'+Math.round(p/100).toLocaleString('en-GB'); }
+
+  async function refresh(){
+    try{
+      ST=await API.liveState();
+      if(ST.server_now) offset = new Date(ST.server_now).getTime() - Date.now();
+      render();
+    }catch(e){ toast('Could not load the auction room: '+(e.message||e),'bad'); }
+  }
+
+  function render(){
+    if(!ST || ST.none){ mode('wait','NO AUCTION SCHEDULED','No upcoming auction on the calendar yet.'); return; }
+    $('headline').textContent = new Date(ST.starts_at).toLocaleDateString('en-GB',{weekday:'long', day:'numeric', month:'long'})+' · 8:00 AM';
+    renderQueue(); renderResults(); renderAdmin();
+
+    if(ST.status==='scheduled'){
+      if(ST.skipped){ mode('wait','SKIPPED','This week\'s auction has been skipped by the operator. Lots roll into the next one.'); return; }
+      mode('wait','STARTS SOON','');
+      $('stagebox').innerHTML=`<div class="waitcard">
+        <div class="eyebrow">Doors open automatically</div>
+        <h2 style="margin:10px 0 4px;font-size:26px">The auction starts in</h2>
+        <div class="mono" id="startclock" style="font-size:40px;font-weight:800;color:var(--navy)">—</div>
+        <p class="sec-sub" style="margin:10px auto 0;max-width:44ch">Pre-bids carry straight into the live event — each lot opens on its highest pre-bid. ${ST.queue.length} lot${ST.queue.length===1?'':'s'} in the running order.</p>
+      </div>`;
       return;
     }
-    startLot();
-  }).catch(e=>toast('Could not load lots: '+(e.message||e),'bad'));
+    if(ST.status==='closed'){
+      mode('wait','AUCTION ENDED','');
+      $('stagebox').innerHTML=`<div class="waitcard">
+        <h2 style="margin:0 0 6px;font-size:26px">That's the hammer on this week</h2>
+        <p class="sec-sub" style="margin:0 auto;max-width:46ch">Winners: pay within 72 hours from your dashboard. Deposits for everyone else release automatically. The next auction appears here as soon as it's on the calendar.</p>
+        <a class="btn" style="margin-top:16px" href="dashboard.html">Go to my dashboard</a>
+      </div>`;
+      return;
+    }
 
-  function startLot(){
-    cur=ORDER[idx]; price=cur.cur; mine=false; t=timerFor(cur);
-    document.getElementById('lotpos').textContent=`Lot ${idx+1} of ${ORDER.length}`;
-    drawStage(); drawNext(); feed(`Lot ${cur.id} — ${cur.year} ${cur.make} ${cur.model} is on the block`,'');
-    clearInterval(timerId); timerId=setInterval(tick,1000);
-    scheduleRival();
-  }
-  function ringHTML(){
-    const total=timerFor(cur), frac=t/total, C=2*Math.PI*52;
-    const col=t<=5?'var(--red)':t<=10?'var(--amber)':'var(--green)';
-    return `<div class="ring"><svg width="118" height="118"><circle cx="59" cy="59" r="52" fill="none" stroke="var(--line)" stroke-width="9"/>
-      <circle cx="59" cy="59" r="52" fill="none" stroke="${col}" stroke-width="9" stroke-linecap="round"
-        stroke-dasharray="${C}" stroke-dashoffset="${C*(1-frac)}"/></svg><div class="t mono" style="color:${col}">${t}</div></div>`;
-  }
-  function drawStage(sold){
-    const minN=price+increment(price);
-    document.getElementById('stage').innerHTML=`
-      <div class="ph">${CAR_SVG}<span class="badge lotno">LOT ${cur.id}</span>${catBadge(cur.cat)}
-        ${cur.featured?'<span class="badge feat">★ Featured</span>':''}
-        ${sold?`<div class="sold-stamp"><span class="${sold==='UNSOLD'?'un':''}">${sold}</span></div>`:''}
-      </div>
+    // -------- LIVE --------
+    mode('live','LIVE NOW','');
+    const c=ST.current; if(!c) return;
+    if(lastLot && lastLot!==c.id){ feed('⚑ Next lot on the block — Lot '+c.lot_no,'hammer'); }
+    if(lastLot!==c.id){ subscribeBids(c.id); seedFeed(c.id); }
+    lastLot=c.id;
+
+    $('stagebox').innerHTML=`<div class="stage">
+      <div class="ph">${CAR_SVG}<span class="badge lotno">LOT ${c.lot_no}</span><span class="badge cat ${c.cat}">${CATNAME[c.cat]}</span>
+        ${c.featured?'<span class="badge feat">★ Featured · 30s</span>':''}</div>
       <div class="stagebody">
         <div style="display:flex;justify-content:space-between;align-items:flex-start;gap:12px;flex-wrap:wrap">
           <div>
-            <h2 style="margin:0;font-size:22px;letter-spacing:-.02em">${cur.year} ${cur.make} ${cur.model}</h2>
-            <div style="display:flex;gap:9px;align-items:center;margin-top:6px">${plate(cur.reg,!AUTH.verified)}
-              <span style="color:var(--muted);font-size:13px">${cur.miles.toLocaleString()} mi · ${cur.fuel} · ${cur.loc}</span></div>
+            <h2 style="margin:0;font-size:22px;letter-spacing:-.02em">${c.year} ${c.make} ${c.model}</h2>
+            <div style="display:flex;gap:9px;align-items:center;margin-top:6px">
+              ${c.reg?plate(c.reg):plate('•••• •••',true)}
+              <span style="color:var(--muted);font-size:13px">${c.mileage.toLocaleString()} mi · ${c.location||''}</span></div>
           </div>
-          ${cur.reserve!=null?`<span class="tag ${price>=cur.reserve?'g':'a'}">${price>=cur.reserve?'✓ Reserve met':'Reserve not met'}</span>`
-            :'<span class="tag g">No reserve</span>'}
+          ${c.has_reserve?`<span class="tag ${c.reserve_met?'g':'a'}">${c.reserve_met?'✓ Reserve met':'Reserve not met'}</span>`
+                         :'<span class="tag g">No reserve</span>'}
         </div>
         <div class="hammerrow" style="margin-top:16px">
-          <div id="ringbox">${ringHTML()}</div>
+          <div id="ringbox"></div>
           <div>
-            <div class="eyebrow" style="font-size:10.5px">Current bid</div>
-            <div class="pricebig mono" id="bigprice">${fmt(price)}</div>
-            <div class="help">Next bid: <b class="mono">${fmt(minN)}</b> (+${fmt(increment(price))})</div>
+            <div class="eyebrow" style="font-size:10.5px">${c.has_bids?'Current bid':'Opening at'}</div>
+            <div class="pricebig mono" id="bigprice">${pounds(c.current_pence)}</div>
+            <div class="help">Next bid: <b class="mono">${pounds(c.min_next_pence)}</b> · ${c.bid_count} bid${c.bid_count==1?'':'s'}</div>
           </div>
           <div class="grow"></div>
-          <div style="min-width:200px">
-            <button class="btn lg block ${mine?'green':''}" id="bidbtn" onclick="myBid()" ${sold?'disabled':''}>
-              ${mine?'You\'re winning':'Bid '+fmt(minN)}</button>
-            <div class="help" style="text-align:center;margin-top:6px">${AUTH.entered?'£50 hold active':'Entering the room will ask for the £50 hold + consents'}</div>
+          <div style="min-width:210px">
+            ${c.is_mine
+              ? '<div class="statusbar sb-mine" style="border-radius:10px">★ Your car is on the block</div>'
+              : `<button class="btn lg block ${c.i_lead?'green':''}" id="bidbtn" onclick="myBid()">${c.i_lead?'You\'re winning':'Bid '+pounds(c.min_next_pence)}</button>`}
+            <div class="help" style="text-align:center;margin-top:6px" id="bidnote"></div>
           </div>
         </div>
-      </div>`;
+      </div>
+    </div>`;
+    drawRing();
   }
-  function drawNext(){
-    document.getElementById('upnext').innerHTML=ORDER.slice(idx+1,idx+7).map(l=>
-      `<div class="mini ${l.featured?'feat':''}"><b>Lot ${l.id}</b><div>${l.year} ${l.make}</div><div class="mono">${fmt(l.cur)}</div></div>`).join('')
-      ||'<span class="help">Last lot of the day.</span>';
+
+  function mode(kind,badge,waitMsg){
+    $('badge').className='livebadge '+(kind==='live'?'':'wait');
+    $('badgeText').textContent=badge;
+    if(waitMsg) $('stagebox').innerHTML=`<div class="waitcard"><h2 style="margin:0 0 6px;font-size:24px">${badge.charAt(0)+badge.slice(1).toLowerCase()}</h2><p class="sec-sub" style="margin:0 auto;max-width:46ch">${waitMsg}</p></div>`;
   }
+
+  function renderQueue(){
+    $('upnext').innerHTML = (ST.queue||[]).slice(0,8).map(l=>
+      `<div class="mini ${l.featured?'feat':''}"><b>Lot ${l.lot_no}</b><div>${l.year} ${l.make}</div><div class="mono">from ${pounds(l.start_pence)}</div></div>`).join('')
+      || '<span class="help">Nothing else in the queue.</span>';
+  }
+  function renderResults(){
+    const r=ST.results||[];
+    $('results').innerHTML = r.length ? r.map(d=>
+      `<div class="brow"><span>Lot ${d.lot_no} · ${d.make} ${d.model}</span>
+        <span class="amt" style="color:${d.sold?'var(--green)':'var(--muted)'}">${d.sold?'SOLD · '+pounds(d.price):'UNSOLD'}</span></div>`).join('')
+      : '<p class="sub" style="margin:0">Nothing hammered yet.</p>';
+  }
+  async function renderAdmin(){
+    if(me===null) me = await API.me().catch(()=>false);
+    const isAdmin = me && me.profile && me.profile.is_admin;
+    $('adminStrip').classList.toggle('show', !!isAdmin && ST.status==='scheduled');
+    if(isAdmin){ $('btnSkip').textContent = ST.skipped ? 'Un-skip this auction' : 'Skip this auction'; }
+  }
+
+  /* ---------- the ring: rendered from the SERVER deadline ---------- */
+  function drawRing(){
+    const box=$('ringbox'); if(!box||!ST.current||!ST.hammer_at) return;
+    const total=ST.current.timer_secs;
+    const remain=Math.max(0,(new Date(ST.hammer_at).getTime()-srvNow())/1000);
+    const shown=Math.min(remain,total), frac=shown/total, C=2*Math.PI*52;
+    const col=shown<=5?'var(--red)':shown<=10?'var(--amber)':'var(--green)';
+    box.innerHTML=`<div class="ring"><svg width="118" height="118"><circle cx="59" cy="59" r="52" fill="none" stroke="var(--line)" stroke-width="9"/>
+      <circle cx="59" cy="59" r="52" fill="none" stroke="${col}" stroke-width="9" stroke-linecap="round"
+        stroke-dasharray="${C}" stroke-dashoffset="${C*(1-frac)}"/></svg>
+      <div class="t mono" style="color:${col}">${Math.ceil(shown)}</div></div>`;
+    if(remain<=0) tryHammer();
+  }
+
+  async function tryHammer(){
+    if(hammering) return; hammering=true;
+    try{ await API.hammer(ST.auction_id); }catch(e){}
+    setTimeout(()=>{hammering=false;}, 1500);
+    refresh();
+  }
+
+  /* ---------- ticking ---------- */
   function tick(){
-    t--; if(t<0){ hammer(); return; }
-    const rb=document.getElementById('ringbox'); if(rb) rb.innerHTML=ringHTML();
+    if(!ST) return;
+    if(ST.status==='live') drawRing();
+    if(ST.status==='scheduled' && !ST.skipped){
+      const el=$('startclock');
+      if(el){
+        let s=Math.max(0,Math.floor((new Date(ST.starts_at).getTime()-srvNow())/1000));
+        const d=Math.floor(s/86400),h=Math.floor(s%86400/3600),m=Math.floor(s%3600/60),ss=s%60;
+        el.textContent = d>0?`${d}d ${String(h).padStart(2,'0')}:${String(m).padStart(2,'0')}`:`${String(h).padStart(2,'0')}:${String(m).padStart(2,'0')}:${String(ss).padStart(2,'0')}`;
+        if(s<=0) setTimeout(refresh,2000);   // the cron starts it; we just notice
+      }
+    }
   }
-  function feed(msg,who,amt){
-    const f=document.getElementById('feed');
-    f.insertAdjacentHTML('afterbegin',`<div class="f ${who}"><span>${msg}</span>${amt?`<span class="amt">${fmt(amt)}</span>`:''}</div>`);
+
+  /* ---------- realtime ---------- */
+  function subscribeAuction(){
+    try{
+      aucChan = sb.channel('auc-room')
+        .on('postgres_changes',{event:'UPDATE',schema:'public',table:'auctions'},()=>refresh())
+        .subscribe();
+    }catch(e){ console.warn('auction realtime unavailable', e); }
   }
-  function bid(byMe){
-    price+=increment(price); mine=byMe; t=timerFor(cur);
-    drawStage(); document.getElementById('bigprice').classList.add('flash');
-    feed(byMe?'You bid':'Bidder '+['M***2','A***8','K***4','T***9'][Math.floor(Math.random()*4)]+' bids', byMe?'you':'', price);
-    scheduleRival();
+  function subscribeBids(lotId){
+    try{
+      if(bidChan) try{sb.removeChannel(bidChan)}catch(e){}
+      bidChan = sb.channel('bids-live-'+lotId)
+        .on('postgres_changes',{event:'INSERT',schema:'public',table:'bids',filter:'lot_id=eq.'+lotId},
+          payload=>{
+            const b=payload.new;
+            feed('Bidder ···'+String(b.bidder_id).slice(-4).toUpperCase()+' bids','',b.amount);
+            const bp=$('bigprice'); if(bp){ bp.textContent=pounds(b.amount); bp.classList.add('flash'); setTimeout(()=>bp.classList.remove('flash'),400); }
+            refresh();
+          })
+        .subscribe();
+    }catch(e){ console.warn('bid realtime unavailable', e); }
   }
-  function myBid(){
+  async function seedFeed(lotId){
+    $('feed').innerHTML='';
+    const h=await API.bidHistory(lotId).catch(()=>[]);
+    h.slice().reverse().forEach(b=>feed(b.masked+' bid','',b.amount));
+  }
+  function feed(msg,cls,amt){
+    $('feed').insertAdjacentHTML('afterbegin',
+      `<div class="f ${cls||''}"><span>${msg}</span>${amt?`<span class="amt">${pounds(amt)}</span>`:''}</div>`);
+  }
+
+  /* ---------- bidding ---------- */
+  async function myBid(){
     if(!AUTH.user){ location.href='login.html?next=live.html'; return; }
     if(!AUTH.verified){ location.href='login.html?verify=1'; return; }
-    if(!AUTH.entered){ AUTH.enter(); toast('£50 hold authorised (demo) — consents recorded','good'); }
-    bid(true);
+    if(!AUTH.entered){ $('enterScrim').classList.add('open'); return; }
+    const c=ST.current; if(!c) return;
+    const btn=$('bidbtn'); if(btn) btn.disabled=true;
+    try{
+      await API.placeBid(c.id, Math.round(c.min_next_pence/100));
+      feed('You bid','you',c.min_next_pence);
+    }catch(e){ toast(e.message||'Bid failed','bad'); }
+    if(btn) btn.disabled=false;
+    refresh();
   }
-  let rivalT=null;
-  function scheduleRival(){
-    clearTimeout(rivalT);
-    if(Math.random()<0.8) rivalT=setTimeout(()=>{ if(t>0) bid(false); }, 1500+Math.random()*5000);
+  async function confirmEnter(){
+    if(!$('c1').checked||!$('c2').checked){ toast('Both boxes are required to enter','warn'); return; }
+    try{
+      await API.enterAuction(ST.auction_id);
+      AUTH.enter(); $('enterScrim').classList.remove('open');
+      toast('You\'re in — consents recorded, £50 hold noted','good');
+    }catch(e){ toast(e.message||'Could not enter','bad'); }
   }
-  function hammer(){
-    clearInterval(timerId); clearTimeout(rivalT);
-    const soldOK = cur.reserve==null || price>=cur.reserve;
-    drawStage(soldOK?'SOLD':'UNSOLD');
-    feed(soldOK?`⚑ SOLD — ${mine?'to YOU':'hammer down'}`:'⚑ Unsold — top bid goes to the seller (accept / reject / counter)','hammer',price);
-    done.push({lot:cur,price,soldOK,mine});
-    document.getElementById('results').innerHTML=done.map(d=>
-      `<div class="brow"><span>Lot ${d.lot.id} · ${d.lot.make} ${d.lot.model}</span>
-        <span class="amt" style="color:${d.soldOK?'var(--green)':'var(--muted)'}">${d.soldOK?(d.mine?'YOU · ':'SOLD · ')+fmt(d.price):'UNSOLD'}</span></div>`).join('');
-    if(mine&&soldOK) toast('You won Lot '+cur.id+' — pay within 72 hours','good');
-    idx++;
-    if(idx<ORDER.length) setTimeout(startLot,3200);
-    else feed('That\'s the last lot — deposits for non-winners release automatically now.','hammer');
+
+  /* ---------- admin ---------- */
+  async function adminStart(){
+    try{ await API.startAuction(ST.auction_id); toast('Auction started','good'); refresh(); }
+    catch(e){ toast(e.message,'bad'); }
   }
+  async function adminSkip(){
+    try{ await API.setSkipped(ST.auction_id, !ST.skipped); toast(ST.skipped?'Auction restored':'Auction skipped','warn'); refresh(); }
+    catch(e){ toast(e.message,'bad'); }
+  }
+
+  /* ---------- go ---------- */
+  refresh(); subscribeAuction();
+  setInterval(tick,250);
+  setInterval(refresh,20000);   // belt-and-braces resync even if realtime drops
 </script>
 </body></html>
