@@ -8,6 +8,7 @@
 const SUPABASE_URL = 'https://YOUR_PROJECT_ID.supabase.co';
 const SUPABASE_KEY = 'YOUR_SUPABASE_PUBLISHABLE_KEY';
 
+const STRIPE_PK = 'pk_test_51TsO4PV05OLyttlWoeqaC7o8banMtvNtDINX03DxbIIjYX43KHcGHrOpmjcOXDjyDEPMX6aqsOXRwQKOarb0cdHF00OBGDZCRa';
 const sb = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY, {
   auth: { flowType: 'implicit', detectSessionInUrl: true, persistSession: true, autoRefreshToken: true }
 });
@@ -159,6 +160,16 @@ const API = {
     const { data, error } = await sb.rpc('upcoming_auctions');
     if (error) throw error;
     return data || [];
+  },
+
+  /* ---------- phase 3: money ---------- */
+  async payListing(lotId){
+    const base = location.origin + location.pathname.replace(/\/[^\/]*$/, '');
+    const { data, error } = await sb.functions.invoke('create-listing-payment',
+      { body: { lot_id: lotId, return_base: base } });
+    if (error) throw error;
+    if (data && data.error) throw new Error(data.error);
+    return data.url;
   },
 
   /* ---------- admin panel ---------- */
