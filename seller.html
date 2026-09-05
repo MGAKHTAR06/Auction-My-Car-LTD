@@ -30,93 +30,52 @@
   <main>
     <h1 class="page" style="font-size:26px;margin-top:0">Seller dashboard</h1>
     <div class="kpis">
-      <div class="kpi"><div class="v">3</div><div class="l">Active listings</div></div>
-      <div class="kpi"><div class="v">1</div><div class="l">Pending approval</div></div>
-      <div class="kpi"><div class="v" style="color:var(--green)">£4,320</div><div class="l">Paid out to date</div></div>
-      <div class="kpi"><div class="v" style="color:var(--amber-900)">£1,750</div><div class="l">Held — awaiting handover</div></div>
+      <div class="kpi"><div class="v" id="k-live">0</div><div class="l">Live listings</div></div>
+      <div class="kpi"><div class="v" id="k-pend">0</div><div class="l">Pending approval</div></div>
+      <div class="kpi"><div class="v" id="k-rej">0</div><div class="l">Needs changes</div></div>
+      <div class="kpi"><div class="v" id="k-sold">0</div><div class="l">Sold</div></div>
     </div>
 
     <div class="panel" id="listings" style="margin-bottom:20px">
-      <h3>My listings</h3><p class="sub">Everything you've listed, by state.</p>
-
-      <div class="listing">
-        <div style="display:flex;justify-content:space-between;flex-wrap:wrap;gap:8px;align-items:center">
-          <b>Lot 0119 · 2017 Ford Fiesta 1.0 Zetec ★ Featured</b><span class="tag g">Live · 6 bids · £3,350</span>
-        </div>
-        <p class="help" style="margin:8px 0 0">No reserve. Buy It Now £4,200. Runs first on Saturday (30s hammer). Edits now would re-enter approval.</p>
-      </div>
-
-      <div class="listing">
-        <div style="display:flex;justify-content:space-between;flex-wrap:wrap;gap:8px;align-items:center">
-          <b>2016 Nissan Qashqai 1.5 dCi</b><span class="tag a">Pending approval</span>
-        </div>
-        <p class="help" style="margin:8px 0 0">In the review queue for Saturday 18 July. Edits are free until approval; the auction date locks when it's approved.</p>
-      </div>
-
-      <div class="listing">
-        <div style="display:flex;justify-content:space-between;flex-wrap:wrap;gap:8px;align-items:center">
-          <b>2014 SEAT Leon 1.2 TSI</b><span class="tag r">Rejected — needs changes</span>
-        </div>
-        <p class="help" style="margin:8px 0 0"><b>Reviewer's reason:</b> damage declaration doesn't mention the cracked rear light visible in photo 4. Fix and resubmit free — you can also change the auction date while it's rejected.</p>
-        <div style="display:flex;gap:10px;margin-top:10px">
-          <button class="btn sm" onclick="toast('Edit flow opens the listing form pre-filled (demo)','warn')">Edit &amp; resubmit (free)</button>
-        </div>
-      </div>
-
-      <div class="listing">
-        <div style="display:flex;justify-content:space-between;flex-wrap:wrap;gap:8px;align-items:center">
-          <b>2015 Renault Clio 0.9 TCe</b><span class="tag m">Unsold — reserve not met at £2,650</span>
-        </div>
-        <div style="background:var(--blue-050);border:1px solid #cfe0fb;border-radius:10px;padding:12px;margin-top:10px;font-size:14px">
-          Top bid <b class="mono">£2,650</b> · your reserve stays hidden · <b>round 1 of 3</b>
-          <div style="display:flex;gap:8px;margin-top:10px;flex-wrap:wrap">
-            <button class="btn green sm" onclick="toast('Accepted — sale completes at £2,650, buyer\'s 72h payment clock starts','good')">Accept £2,650</button>
-            <div style="display:flex;background:#fff;border:1.5px solid var(--line);border-radius:9px;padding:0 10px;align-items:center;gap:5px">
-              <span style="font-weight:700;color:var(--muted)">£</span>
-              <input id="sellCounter" inputmode="numeric" placeholder="2850" style="border:none;outline:none;width:90px;font-family:'JetBrains Mono',monospace;font-weight:700;padding:8px 0">
-            </div>
-            <button class="btn sm" onclick="sellerCounter()">Counter</button>
-            <button class="btn ghost sm" onclick="toast('Rejected — negotiation ends. Relist for £5.','warn')">Reject (relist £5)</button>
-          </div>
-          <div class="help" style="margin-top:8px">Your counter must be <b>below your reserve</b> and no higher than any counter you've already made. 24 hours to respond — silence is rejection.</div>
-        </div>
-      </div>
+      <h3>My listings</h3><p class="sub">Straight from the database, by state.</p>
+      <div id="listbox"><p class="help">Loading…</p></div>
     </div>
 
     <div class="panel" id="sales">
-      <h3>Sales &amp; payouts</h3><p class="sub">Money is released when the handover evidence clears our check.</p>
-
-      <div class="listing">
-        <div style="display:flex;justify-content:space-between;flex-wrap:wrap;gap:8px;align-items:center">
-          <b>Lot 0122 · Vauxhall Corsa (Cat S) — sold £1,750</b><span class="tag b">Handover stage</span>
-        </div>
-        <div class="evid">
-          <div class="e done">✓ Buyer paid<br><span class="help">£1,750 held for you</span></div>
-          <div class="e">Buyer's uploads<br><span class="help">Keeper slip + 2 videos — pending</span></div>
-          <div class="e">Your upload<br><button class="btn sm" style="margin-top:6px" onclick="toast('V5C proof-of-posting upload — production build','warn')">Upload V5C proof of posting</button></div>
-        </div>
-        <div class="finewarn">⏱ <b>Collection clock:</b> agree a time and date with the buyer within 72 hours of contact release. After that, £5/day accrues (shown here, nothing taken yet) up to £70 at 14 days. Genuine emergencies: report it — an admin decides, and a valid reason wipes the fine entirely. Current accrual: <b class="mono">£0</b>.</div>
-      </div>
-
-      <table class="tbl" style="margin-top:14px">
-        <tr><th>Sale</th><th>Amount</th><th>Status</th><th>Paid out</th></tr>
-        <tr><td>2019 Peugeot 208 (May)</td><td class="mono">£4,320</td><td><span class="tag g">Released</span></td><td class="mono">£4,320</td></tr>
-        <tr><td>Buyer default credit — Lot 0097</td><td class="mono">£25</td><td><span class="tag g">Late-fee share</span></td><td class="mono">£25</td></tr>
-      </table>
+      <h3>Sales &amp; payouts</h3>
+      <p class="sub">After a sale: money is held, both sides upload handover evidence, an admin approves, then the payout releases. Payouts go live with Stripe in phase 3.</p>
+      <div id="salesbox"><p class="help">No completed sales yet.</p></div>
     </div>
   </main>
 </div></div>
 
 <footer class="site"></footer>
 <script src="assets/amc.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script src="assets/api.js"></script>
 <script>
   if(!AUTH.user) location.href='login.html?next=seller.html';
-  function sellerCounter(){
-    const v=parseInt(document.getElementById('sellCounter').value,10);
-    if(!v){ toast('Enter your counter amount','warn'); return; }
-    if(v>=3000){ toast('Counters must be below your reserve (demo reserve £3,000)','bad'); return; }
-    if(v<=2650){ toast('That\'s at or below the buyer\'s bid — just accept it','warn'); return; }
-    toast('Counter of £'+v.toLocaleString()+' sent — the buyer has 24 hours','good');
-  }
+  const TAGS={pending:'a',rejected:'r',listed:'g',sold:'g',unsold:'m',draft:'m',defaulted:'r'};
+  const LBL={pending:'Pending approval',rejected:'Rejected — needs changes',listed:'Live',sold:'Sold',unsold:'Unsold',draft:'Draft',defaulted:'Defaulted'};
+  API.myListings().then(rows=>{
+    document.getElementById('k-live').textContent=rows.filter(r=>r.status==='listed').length;
+    document.getElementById('k-pend').textContent=rows.filter(r=>r.status==='pending').length;
+    document.getElementById('k-rej').textContent=rows.filter(r=>r.status==='rejected').length;
+    document.getElementById('k-sold').textContent=rows.filter(r=>r.status==='sold').length;
+    document.getElementById('listbox').innerHTML = rows.length ? rows.map(r=>`
+      <div class="listing">
+        <div style="display:flex;justify-content:space-between;flex-wrap:wrap;gap:8px;align-items:center">
+          <b>Lot ${r.lot_no} · ${r.year} ${r.make} ${r.model} ${r.featured?'★':''}</b>
+          <span class="tag ${TAGS[r.status]||'m'}">${LBL[r.status]||r.status}</span>
+        </div>
+        <p class="help" style="margin:8px 0 0">
+          Start £${Math.round(r.start_pence/100).toLocaleString()}
+          ${r.reserve_pence?' · hidden reserve set':' · no reserve'}
+          ${r.buy_now_pence?' · Buy It Now £'+Math.round(r.buy_now_pence/100).toLocaleString():''}
+          ${r.status==='rejected'&&r.reject_reason?'<br><b>Reviewer\'s reason:</b> '+r.reject_reason:''}
+        </p>
+        ${r.status==='listed'?`<div style="margin-top:8px"><a class="btn sm ghost" href="lot.html?lot=${r.id}">View live lot</a></div>`:''}
+      </div>`).join('') : '<p class="help">Nothing listed yet — <a href="sell.html" style="color:var(--red-brand);font-weight:700">list your first car (£25)</a>.</p>';
+  }).catch(e=>{ document.getElementById('listbox').innerHTML='<p class="err">Could not load listings: '+(e.message||e)+'</p>'; });
 </script>
 </body></html>
