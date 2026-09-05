@@ -89,7 +89,7 @@
       const me=await API.me();
       if(me&&me.profile&&me.profile.verified) AUTH.verify();
       AUTH.login((me&&me.profile&&me.profile.name)||email.split('@')[0],email);
-      toast('Logged in','good'); after();
+      toast('Logged in','good'); if(window.renderNav) renderNav(); after();
     }catch(e){ toast(e.message||'Login failed','bad'); }
   }
   async function doRegister(){
@@ -117,6 +117,7 @@
     }
     try{
       await API.verifyMe(); AUTH.verify();
+      if(window.renderNav) renderNav();
       toast('Verified — bidding and selling unlocked','good');
       setTimeout(after,700);
     }catch(e){ toast(e.message||'Verify failed','bad'); }
@@ -126,6 +127,7 @@
     showAccount();
   }
   function showAccount(){
+    if(window.renderNav) renderNav();
     show('account');
     const u=AUTH.user;
     document.getElementById('acc-line').textContent=`Logged in as ${u.name} (${u.email}) · ${AUTH.verified?'Verified member':'Not verified yet'}`;
