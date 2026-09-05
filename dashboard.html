@@ -29,74 +29,25 @@
   <main>
     <h1 class="page" style="font-size:26px;margin-top:0" id="hello">Dashboard</h1>
     <div class="kpis">
-      <div class="kpi"><div class="v">2</div><div class="l">Active bids</div></div>
-      <div class="kpi"><div class="v" style="color:var(--green)">1</div><div class="l">Winning</div></div>
-      <div class="kpi"><div class="v">1</div><div class="l">Won — action needed</div></div>
-      <div class="kpi"><div class="v">3</div><div class="l">Watched lots</div></div>
+      <div class="kpi"><div class="v" id="k-active">0</div><div class="l">Active bids</div></div>
+      <div class="kpi"><div class="v" style="color:var(--green)" id="k-lead">0</div><div class="l">Winning</div></div>
+      <div class="kpi"><div class="v" id="k-won">0</div><div class="l">Won — action needed</div></div>
+      <div class="kpi"><div class="v" id="k-watch">0</div><div class="l">Watched lots</div></div>
     </div>
 
-    <div class="credit" style="margin-bottom:20px">🎟 <b>Account credit:</b> 50% off the auction fee on your next win — granted after a cancelled sale. Expires 30 September 2026. Applied automatically at checkout.</div>
-
     <div class="panel" id="bids" style="margin-bottom:20px">
-      <h3>My bids</h3><p class="sub">Live status across this week's lots. Every bid is binding.</p>
-      <table class="tbl"><tr><th>Lot</th><th>Your bid</th><th>Current</th><th>Status</th></tr>
-        <tr onclick="location.href='lot.html?lot=0120'" style="cursor:pointer"><td>0120 · VW Golf 1.4 TSI</td><td class="mono">£5,300</td><td class="mono">£5,300</td><td><span class="tag g">Highest bidder</span></td></tr>
-        <tr onclick="location.href='lot.html?lot=0123'" style="cursor:pointer"><td>0123 · Audi A3 35 TFSI</td><td class="mono">£10,400</td><td class="mono">£10,600</td><td><span class="tag r">Outbid</span></td></tr>
-      </table>
+      <h3>My bids</h3><p class="sub">Live from the database. Every bid is binding.</p>
+      <div id="bidsbox"><p class="help">Loading…</p></div>
     </div>
 
     <div class="panel" id="won" style="margin-bottom:20px">
-      <h3>Won auctions</h3><p class="sub">Everything you need to do, in order — pay, collect, upload, confirm.</p>
-
-      <div class="won">
-        <div style="display:flex;justify-content:space-between;gap:10px;flex-wrap:wrap;align-items:center">
-          <b>Lot 0119 · 2017 Ford Fiesta 1.0 Zetec — won at £3,350</b>
-          <span class="deadline" id="payclock">Pay within 72h</span>
-        </div>
-        <div style="display:flex;gap:10px;margin-top:12px;flex-wrap:wrap">
-          <a class="btn" href="checkout.html?lot=0119">Pay now</a>
-          <button class="btn ghost sm" onclick="toast('Miss the deadline and your £50 hold is captured (£25 to the seller, £25 platform) — and the bid remains binding','warn')">What if I'm late?</button>
-        </div>
-      </div>
-
-      <div class="won">
-        <div style="display:flex;justify-content:space-between;gap:10px;flex-wrap:wrap;align-items:center">
-          <b>Lot 0125 · Mercedes A180d — reserve not met at £6,800</b>
-          <span class="tag a">Negotiation · round 2 of 3</span>
-        </div>
-        <div class="nego">
-          <div style="font-size:14px">Seller counters: <b class="mono">£7,400</b> <span class="help" style="display:inline">(their reserve stays hidden — counters can only come down)</span></div>
-          <div style="display:flex;gap:10px;margin-top:10px;flex-wrap:wrap">
-            <button class="btn green sm" onclick="toast('Accepted at £7,400 — checkout unlocked (demo)','good')">Accept £7,400</button>
-            <div class="inp" style="display:flex;background:#fff;border:1.5px solid var(--line);border-radius:9px;padding:0 10px;align-items:center;gap:5px">
-              <span style="font-weight:700;color:var(--muted)">£</span>
-              <input id="counter" inputmode="numeric" placeholder="7100" style="border:none;outline:none;width:90px;font-family:'JetBrains Mono',monospace;font-weight:700;padding:8px 0">
-            </div>
-            <button class="btn sm" onclick="counterBid()">Counter</button>
-            <button class="btn ghost sm" onclick="toast('Rejected — negotiation ends; your deposit releases','warn')">Reject</button>
-          </div>
-          <div class="help" style="margin-top:8px">Your counter can't be lower than your closing bid (£6,800) or any counter you've already made. 24 hours to respond — silence counts as rejection.</div>
-        </div>
-      </div>
-
-      <div class="won">
-        <div style="display:flex;justify-content:space-between;gap:10px;flex-wrap:wrap;align-items:center">
-          <b>Lot 0122 · Vauxhall Corsa (Cat S) — paid £1,750 · collection stage</b>
-          <span class="tag b">Awaiting handover</span>
-        </div>
-        <p class="help" style="margin:10px 0">Seller's number was shared with you (and yours with them). Agree a time by phone, then confirm it here — that's what stops the seller's clock.</p>
-        <div style="display:flex;gap:10px;flex-wrap:wrap">
-          <button class="btn sm" onclick="toast('Collection confirmed: both sides locked to the agreed slot (demo)','good')">Confirm agreed collection time</button>
-          <button class="btn ghost sm" onclick="openScrim('flagScrim')">⚑ Report a problem</button>
-          <button class="btn ghost sm" onclick="toast('Keeper-slip + 2 videos (outside & inside) upload — production build','warn')">Upload keeper slip &amp; videos</button>
-          <button class="btn danger sm" onclick="openScrim('disputeScrim')">Raise a dispute</button>
-        </div>
-      </div>
+      <h3>Won auctions</h3><p class="sub">Pay within 72 hours, collect, upload evidence, confirm.</p>
+      <div id="wonbox"><p class="help">Nothing here yet — wins appear after the Saturday close runs (phase 2).</p></div>
     </div>
 
     <div class="panel" id="watch">
-      <h3>Watchlist</h3><p class="sub">Lots you're keeping an eye on.</p>
-      <div class="grid" id="watchgrid"></div>
+      <h3>Watchlist</h3><p class="sub">Saved lots.</p>
+      <div class="grid" id="watchgrid"><p class="help">The watchlist connects to the database in an upcoming phase.</p></div>
     </div>
   </main>
 </div></div>
@@ -128,21 +79,24 @@
 
 <footer class="site"></footer>
 <script src="assets/amc.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script src="assets/api.js"></script>
 <script>
   if(!AUTH.user) location.href='login.html?next=dashboard.html';
   document.getElementById('hello').textContent='Hi, '+(AUTH.user?AUTH.user.name.split(' ')[0]:'')+' 👋';
-  document.getElementById('watchgrid').innerHTML=LOTS.slice(0,3).map(lotCard).join('');
-  function openScrim(id){ document.getElementById(id).classList.add('open'); }
-  function closeAll(){ document.querySelectorAll('.scrim').forEach(s=>s.classList.remove('open')); }
-  function counterBid(){
-    const v=parseInt(document.getElementById('counter').value,10);
-    if(!v||v<6800){ toast('Your counter can\'t be below your £6,800 closing bid','bad'); return; }
-    if(v>=7400){ toast('That\'s at or above the seller\'s offer — just accept it','warn'); return; }
-    toast('Counter of £'+v.toLocaleString()+' sent — the seller has 24 hours','good'); closeAll();
-  }
-  // demo 72h clock
-  let s=71*3600+42*60;
-  setInterval(()=>{ s--; const h=Math.floor(s/3600),m=Math.floor(s%3600/60);
-    document.getElementById('payclock').textContent=`Pay within ${h}h ${String(m).padStart(2,'0')}m`; },1000);
+  API.myBids().then(rows=>{
+    document.getElementById('k-active').textContent=rows.filter(r=>r.lot_status==='listed').length;
+    document.getElementById('k-lead').textContent=rows.filter(r=>r.i_lead&&r.lot_status==='listed').length;
+    document.getElementById('k-won').textContent=rows.filter(r=>r.lot_status==='sold'&&r.i_lead).length;
+    document.getElementById('bidsbox').innerHTML = rows.length ? `
+      <table class="tbl"><tr><th>Lot</th><th>Your best bid</th><th>Current top</th><th>Status</th></tr>
+      ${rows.map(r=>`<tr onclick="location.href='lot.html?lot=${r.lot_id}'" style="cursor:pointer">
+        <td>${r.year} ${r.make} ${r.model}</td>
+        <td class="mono">£${Math.round(r.my_best/100).toLocaleString()}</td>
+        <td class="mono">£${Math.round(r.current_top/100).toLocaleString()}</td>
+        <td>${r.lot_status!=='listed'?'<span class="tag m">'+r.lot_status+'</span>'
+            : r.i_lead?'<span class="tag g">Highest bidder</span>':'<span class="tag r">Outbid</span>'}</td></tr>`).join('')}
+      </table>` : '<p class="help">No bids yet — <a href="browse.html" style="color:var(--red-brand);font-weight:700">browse the auction</a>.</p>';
+  }).catch(e=>{ document.getElementById('bidsbox').innerHTML='<p class="err">Could not load bids: '+(e.message||e)+'</p>'; });
 </script>
 </body></html>
