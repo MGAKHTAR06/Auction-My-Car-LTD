@@ -176,7 +176,8 @@ create or replace function public.verify_me() returns void
 language plpgsql security definer set search_path=public as $$
 begin
   if auth.uid() is null then raise exception 'Not signed in'; end if;
-  update profiles set verified = true where id = auth.uid();
+  insert into profiles (id, verified) values (auth.uid(), true)
+  on conflict (id) do update set verified = true;
 end $$;
 
 -- --- enter an auction: records BOTH consents with timestamp + ip ---
@@ -374,6 +375,22 @@ create policy "fees readable"      on public.settings  for select using (true);
 create policy "bands readable"     on public.fee_schedule for select using (true);
 create policy "own entries read"   on public.auction_entries for select using (user_id = auth.uid());
 -- lots + bids: NO direct policies -> unreachable except via the functions above.
+
+-- ---------- grants: required because "auto-expose new tables" is (correctly) OFF.
+-- RLS still decides WHICH rows; these decide WHETHER the roles may ask at all.
+grant usage on schema public to anon, authenticated;
+grant select on public.auctions, public.settings, public.fee_schedule to anon, authenticated;
+grant select on public.profiles, public.auction_entries to authenticated;
+-- lots and bids deliberately get NO grants: the security-definer functions are the only doors.
+
+-- ---------- deliberate API grants ("auto-expose new tables" is OFF, so we grant manually) ----------
+grant usage on schema public to anon, authenticated;
+grant select on public.profiles        to authenticated;  -- RLS: own row only
+grant select on public.auction_entries to authenticated;  -- RLS: own rows only
+grant select on public.auctions        to anon, authenticated;
+grant select on public.settings        to anon, authenticated;
+grant select on public.fee_schedule    to anon, authenticated;
+-- lots and bids: deliberately NO grants — functions are the only doors.
 
 -- ---------- seed: the first Saturday auction ----------
 insert into public.auctions (title, starts_at)
