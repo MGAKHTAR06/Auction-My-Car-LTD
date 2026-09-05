@@ -71,6 +71,8 @@
 
 <footer class="site"></footer>
 <script src="assets/amc.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script src="assets/api.js"></script>
 <script>
   const P=new URLSearchParams(location.search);
   function show(w){
@@ -79,19 +81,35 @@
     document.getElementById('tabs').classList.toggle('hide',w==='verify'||w==='account');
     tb[0].classList.toggle('on',w==='login'); tb[1].classList.toggle('on',w==='register');
   }
-  function doLogin(){
+  async function doLogin(){
     const email=document.getElementById('li-email').value;
-    AUTH.login(email.split('@')[0].replace(/^\w/,c=>c.toUpperCase()),email);
-    after();
+    const pass=document.querySelector('#login input[type=password]').value;
+    try{
+      await API.login(email,pass);
+      const me=await API.me();
+      if(me&&me.profile&&me.profile.verified) AUTH.verify();
+      AUTH.login((me&&me.profile&&me.profile.name)||email.split('@')[0],email);
+      toast('Logged in','good'); after();
+    }catch(e){ toast(e.message||'Login failed','bad'); }
   }
-  function doRegister(){
-    AUTH.login(document.getElementById('rg-first').value+' '+document.getElementById('rg-last').value,document.getElementById('rg-email').value);
-    toast('Account created — check your email to confirm (demo)','good');
-    show('verify');
+  async function doRegister(){
+    const name=document.getElementById('rg-first').value+' '+document.getElementById('rg-last').value;
+    const email=document.getElementById('rg-email').value;
+    const pass=document.querySelector('#register input[type=password]').value;
+    const tel=document.querySelector('#register input[type=tel]').value;
+    try{
+      await API.register(name,email,pass,tel,'');
+      AUTH.login(name,email);
+      toast('Account created — check your inbox to confirm your email','good');
+      show('verify');
+    }catch(e){ toast(e.message||'Could not create account','bad'); }
   }
-  function doVerify(){
-    AUTH.verify(); toast('Verified — bidding and selling unlocked','good');
-    setTimeout(after,700);
+  async function doVerify(){
+    try{
+      await API.verifyMe(); AUTH.verify();
+      toast('Verified — bidding and selling unlocked','good');
+      setTimeout(after,700);
+    }catch(e){ toast(e.message||'Verify failed — are you logged in and email-confirmed?','bad'); }
   }
   function after(){
     const next=P.get('next'); if(next){ location.href=next; return; }
