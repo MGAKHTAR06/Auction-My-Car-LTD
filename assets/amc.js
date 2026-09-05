@@ -78,7 +78,7 @@ function toast(msg,kind){ let box=document.querySelector('.toasts'); if(!box){bo
 function lotCard(l){
   const v=AUTH.verified;
   return `<article class="card" onclick="location.href='lot.html?lot=${l.id}'">
-    <div class="ph">${CAR_SVG}<span class="badge lotno">LOT ${l.no||l.id}</span>${catBadge(l.cat)}${l.featured?'<span class="badge feat">★ Featured</span>':''}</div>
+    <div class="ph">${CAR_SVG}<span class="badge lotno">LOT ${String(l.no||'').padStart(4,'0')}</span>${catBadge(l.cat)}${l.featured?'<span class="badge feat">★ Featured</span>':''}</div>
     <div class="cb">
       <div class="nm">${l.year} ${l.make} ${l.model}</div>
       <div class="meta">${plate(l.reg,!v)}<span>· ${l.miles.toLocaleString()} mi</span><span>· ${l.fuel}</span></div>
@@ -93,7 +93,7 @@ function lotCard(l){
 function navHTML(active){
   const u=AUTH.user;
   return `<div class="wrap nav">
-    <a class="brand" href="index.html"><img src="assets/logo.png" alt="Auction My Car logo" style="height:36px;width:auto" onerror="this.style.display='none';this.nextElementSibling.style.display='grid'"><span class="mark" style="display:none"><svg viewBox="0 0 24 24" fill="none"><path d="M3 13l2-5a3 3 0 012.8-2h8.4A3 3 0 0119 8l2 5v5a1 1 0 01-1 1h-2a1 1 0 01-1-1v-1H7v1a1 1 0 01-1 1H4a1 1 0 01-1-1v-5z" stroke="#fff" stroke-width="1.7" stroke-linejoin="round"/><circle cx="7.5" cy="14.5" r="1.2" fill="#fff"/><circle cx="16.5" cy="14.5" r="1.2" fill="#fff"/></svg></span>Auction My Car</a>
+    <a class="brand" href="index.html"><img src="assets/logo.png" alt="Auction My Car logo" style="height:36px;width:auto" onerror="this.style.display='none';this.nextElementSibling.style.display='grid'"><span class="mark" style="display:none"><svg viewBox="0 0 24 24" fill="none"><path d="M3 13l2-5a3 3 0 012.8-2h8.4A3 3 0 0119 8l2 5v5a1 1 0 01-1 1h-2a1 1 0 01-1-1v-1H7v1a1 1 0 01-1 1H4a1 1 0 01-1-1v-5z" stroke="#fff" stroke-width="1.7" stroke-linejoin="round"/><circle cx="7.5" cy="14.5" r="1.2" fill="#fff"/><circle cx="16.5" cy="14.5" r="1.2" fill="#fff"/></svg></span></a>
     <div class="grow"></div>
     <nav class="navlinks">
       <a href="browse.html" class="${active==='browse'?'on':''}">Browse auction</a>
