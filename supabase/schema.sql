@@ -258,7 +258,7 @@ begin
   min_needed := case when top is null then greatest(l.start_pence, min_first)
                      else top + bid_increment(top) end;
   if p_amount < min_needed then
-    raise exception 'Bid must be at least £%', (min_needed/100.0);
+    raise exception 'Bid must be at least £%', to_char(min_needed/100.0,'FM999,999,990.00');
   end if;
 
   insert into bids (lot_id, bidder_id, amount) values (p_lot, auth.uid(), p_amount)
@@ -297,6 +297,7 @@ language sql stable security definer set search_path=public as $$
          case when is_verified(auth.uid()) then l.reg else '' end,
          case when is_verified(auth.uid()) then l.vin else '' end,
          l.cat,
+         l.fuel,
          case when is_verified(auth.uid()) then l.transmission else '' end,
          l.engine,
          case when is_verified(auth.uid()) then l.owners else null end,
