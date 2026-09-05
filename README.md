@@ -18,23 +18,6 @@ Rather than rolling listings, Auction My Car runs a **single timed live auction 
 
 The front end is a **static site** (no build step); all the heavy lifting — accounts, listings, bidding rules, security — is done by **Supabase (PostgreSQL)**.
 
-## 🧭 Version History
-
-This repo is organised as a sequence of snapshots so the project's evolution is visible in the commit history. Folders are numbered in the order they were built:
-
-| # | Folder | Stage |
-| - | ------ | ----- |
-| 00 | `00-initial-static-prototype` | First static front-end prototype — pages and design only, no backend |
-| 01–08 | `01-phase-1.1-failed` … `08-phase-1.8-failed` | Iterating on the Supabase integration — the debugging journey |
-| 09 | `09-phase-1.9-working` | First **working** database-backed build |
-| 10 | `10-phase-2.1` | Phase 2 iteration |
-| 11 | `11-phase-2.2-failed` | Phase 2 attempt |
-| 12 | `12-phase-2.3` | Phase 2, stabilised |
-| 13 | `13-amc-current` | **Current build** — includes the Stripe Edge Functions |
-
-> The "failed" snapshots are kept on purpose — they show the real iteration and debugging behind the working versions.
-
-Each version folder contains its own `README.md` (and, from the backend phases, a `PHASE1-SETUP.md`) describing that snapshot.
 
 ## 🏗️ Architecture (current build)
 
