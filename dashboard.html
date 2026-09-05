@@ -1,0 +1,148 @@
+<!doctype html><html lang="en-GB"><head>
+<meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Your dashboard — Auction My Car</title>
+<link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Hanken+Grotesk:wght@400;600;700;800&family=JetBrains+Mono:wght@500;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="assets/amc.css">
+<style>
+  .kpis{display:grid;grid-template-columns:repeat(4,1fr);gap:14px;margin-bottom:20px}
+  @media(max-width:760px){.kpis{grid-template-columns:repeat(2,1fr)}}
+  .kpi{background:#fff;border:1px solid var(--line);border-radius:12px;padding:14px 16px}
+  .kpi .v{font-size:24px;font-weight:800}.kpi .l{font-size:12px;color:var(--muted);font-weight:600}
+  .won{border:1px solid var(--line);border-radius:12px;padding:16px;margin-bottom:14px;background:#fff}
+  .deadline{font-family:"JetBrains Mono",monospace;font-weight:700;color:var(--amber-900);background:var(--amber-050);
+    padding:4px 9px;border-radius:8px;font-size:12.5px}
+  .nego{background:var(--blue-050);border:1px solid #cfe0fb;border-radius:10px;padding:14px;margin-top:12px}
+  .credit{background:var(--green-050);border:1px solid #bfe6c9;border-radius:10px;padding:12px 14px;font-size:13.5px}
+</style></head><body>
+
+<header class="site"></header>
+<div class="wrap"><div class="shell">
+  <aside class="side">
+    <span class="lab">Buying</span>
+    <a class="on" href="#">Overview</a><a href="#bids">My bids</a><a href="#won">Won auctions</a><a href="#watch">Watchlist</a>
+    <span class="lab">Account</span>
+    <a href="seller.html">Seller dashboard</a><a href="#" onclick="toast('Payments history — production build','warn');return false">Payments</a>
+    <a href="login.html">Profile &amp; verification</a>
+  </aside>
+
+  <main>
+    <h1 class="page" style="font-size:26px;margin-top:0" id="hello">Dashboard</h1>
+    <div class="kpis">
+      <div class="kpi"><div class="v">2</div><div class="l">Active bids</div></div>
+      <div class="kpi"><div class="v" style="color:var(--green)">1</div><div class="l">Winning</div></div>
+      <div class="kpi"><div class="v">1</div><div class="l">Won — action needed</div></div>
+      <div class="kpi"><div class="v">3</div><div class="l">Watched lots</div></div>
+    </div>
+
+    <div class="credit" style="margin-bottom:20px">🎟 <b>Account credit:</b> 50% off the auction fee on your next win — granted after a cancelled sale. Expires 30 September 2026. Applied automatically at checkout.</div>
+
+    <div class="panel" id="bids" style="margin-bottom:20px">
+      <h3>My bids</h3><p class="sub">Live status across this week's lots. Every bid is binding.</p>
+      <table class="tbl"><tr><th>Lot</th><th>Your bid</th><th>Current</th><th>Status</th></tr>
+        <tr onclick="location.href='lot.html?lot=0120'" style="cursor:pointer"><td>0120 · VW Golf 1.4 TSI</td><td class="mono">£5,300</td><td class="mono">£5,300</td><td><span class="tag g">Highest bidder</span></td></tr>
+        <tr onclick="location.href='lot.html?lot=0123'" style="cursor:pointer"><td>0123 · Audi A3 35 TFSI</td><td class="mono">£10,400</td><td class="mono">£10,600</td><td><span class="tag r">Outbid</span></td></tr>
+      </table>
+    </div>
+
+    <div class="panel" id="won" style="margin-bottom:20px">
+      <h3>Won auctions</h3><p class="sub">Everything you need to do, in order — pay, collect, upload, confirm.</p>
+
+      <div class="won">
+        <div style="display:flex;justify-content:space-between;gap:10px;flex-wrap:wrap;align-items:center">
+          <b>Lot 0119 · 2017 Ford Fiesta 1.0 Zetec — won at £3,350</b>
+          <span class="deadline" id="payclock">Pay within 72h</span>
+        </div>
+        <div style="display:flex;gap:10px;margin-top:12px;flex-wrap:wrap">
+          <a class="btn" href="checkout.html?lot=0119">Pay now</a>
+          <button class="btn ghost sm" onclick="toast('Miss the deadline and your £50 hold is captured (£25 to the seller, £25 platform) — and the bid remains binding','warn')">What if I'm late?</button>
+        </div>
+      </div>
+
+      <div class="won">
+        <div style="display:flex;justify-content:space-between;gap:10px;flex-wrap:wrap;align-items:center">
+          <b>Lot 0125 · Mercedes A180d — reserve not met at £6,800</b>
+          <span class="tag a">Negotiation · round 2 of 3</span>
+        </div>
+        <div class="nego">
+          <div style="font-size:14px">Seller counters: <b class="mono">£7,400</b> <span class="help" style="display:inline">(their reserve stays hidden — counters can only come down)</span></div>
+          <div style="display:flex;gap:10px;margin-top:10px;flex-wrap:wrap">
+            <button class="btn green sm" onclick="toast('Accepted at £7,400 — checkout unlocked (demo)','good')">Accept £7,400</button>
+            <div class="inp" style="display:flex;background:#fff;border:1.5px solid var(--line);border-radius:9px;padding:0 10px;align-items:center;gap:5px">
+              <span style="font-weight:700;color:var(--muted)">£</span>
+              <input id="counter" inputmode="numeric" placeholder="7100" style="border:none;outline:none;width:90px;font-family:'JetBrains Mono',monospace;font-weight:700;padding:8px 0">
+            </div>
+            <button class="btn sm" onclick="counterBid()">Counter</button>
+            <button class="btn ghost sm" onclick="toast('Rejected — negotiation ends; your deposit releases','warn')">Reject</button>
+          </div>
+          <div class="help" style="margin-top:8px">Your counter can't be lower than your closing bid (£6,800) or any counter you've already made. 24 hours to respond — silence counts as rejection.</div>
+        </div>
+      </div>
+
+      <div class="won">
+        <div style="display:flex;justify-content:space-between;gap:10px;flex-wrap:wrap;align-items:center">
+          <b>Lot 0122 · Vauxhall Corsa (Cat S) — paid £1,750 · collection stage</b>
+          <span class="tag b">Awaiting handover</span>
+        </div>
+        <p class="help" style="margin:10px 0">Seller's number was shared with you (and yours with them). Agree a time by phone, then confirm it here — that's what stops the seller's clock.</p>
+        <div style="display:flex;gap:10px;flex-wrap:wrap">
+          <button class="btn sm" onclick="toast('Collection confirmed: both sides locked to the agreed slot (demo)','good')">Confirm agreed collection time</button>
+          <button class="btn ghost sm" onclick="openScrim('flagScrim')">⚑ Report a problem</button>
+          <button class="btn ghost sm" onclick="toast('Keeper-slip + 2 videos (outside & inside) upload — production build','warn')">Upload keeper slip &amp; videos</button>
+          <button class="btn danger sm" onclick="openScrim('disputeScrim')">Raise a dispute</button>
+        </div>
+      </div>
+    </div>
+
+    <div class="panel" id="watch">
+      <h3>Watchlist</h3><p class="sub">Lots you're keeping an eye on.</p>
+      <div class="grid" id="watchgrid"></div>
+    </div>
+  </main>
+</div></div>
+
+<!-- Report a problem -->
+<div class="scrim" id="flagScrim">
+  <div class="modal">
+    <h3>⚑ Report a problem</h3>
+    <p>For collection issues — a seller who won't answer or won't commit to a time. The seller is notified when you file this, and an admin will contact them. Their £5/day clock keeps running unless they have a valid reason (an admin decides).</p>
+    <div class="field"><label>What's happening?</label><textarea placeholder="e.g. Called and texted 4 times since Tuesday, no reply…"></textarea></div>
+    <div class="drop" style="border:2px dashed var(--line);border-radius:10px;padding:16px;text-align:center;font-size:13px;color:var(--muted);cursor:pointer" onclick="toast('Screenshot upload — production build','warn')">📎 Attach screenshots of texts / call log</div>
+    <button class="btn block" style="margin-top:14px" onclick="closeAll();toast('Problem filed — the seller has been notified and an admin will be in touch','good')">File report</button>
+    <button class="btn ghost block" style="margin-top:8px" onclick="closeAll()">Cancel</button>
+  </div>
+</div>
+
+<!-- Dispute -->
+<div class="scrim" id="disputeScrim">
+  <div class="modal">
+    <h3>Raise a dispute — not as described</h3>
+    <p><b>Covered:</b> damage or missing parts that existed at listing and weren't in the seller's damage declaration. <b>Not covered:</b> faults developing after collection — that's auction risk. Filing freezes all payment clocks and any payout until an admin rules.</p>
+    <div class="field"><label>What wasn't declared?</label><textarea placeholder="Describe the undisclosed damage exactly…"></textarea></div>
+    <div class="drop" style="border:2px dashed var(--line);border-radius:10px;padding:16px;text-align:center;font-size:13px;color:var(--muted);cursor:pointer" onclick="toast('Photo & video upload — production build','warn')">📷 Photos and video of the issue (required)</div>
+    <p class="help" style="margin-top:10px">An admin will email the seller for their side and speak to you both by recorded call before ruling in writing. If your dispute is rejected, exiting the purchase costs £100 (paid to the seller) on top of the £50 hold.</p>
+    <button class="btn danger block" style="margin-top:8px" onclick="closeAll();toast('Dispute filed — clocks frozen, an admin has been assigned','good')">File dispute</button>
+    <button class="btn ghost block" style="margin-top:8px" onclick="closeAll()">Cancel</button>
+  </div>
+</div>
+
+<footer class="site"></footer>
+<script src="assets/amc.js"></script>
+<script>
+  if(!AUTH.user) location.href='login.html?next=dashboard.html';
+  document.getElementById('hello').textContent='Hi, '+(AUTH.user?AUTH.user.name.split(' ')[0]:'')+' 👋';
+  document.getElementById('watchgrid').innerHTML=LOTS.slice(0,3).map(lotCard).join('');
+  function openScrim(id){ document.getElementById(id).classList.add('open'); }
+  function closeAll(){ document.querySelectorAll('.scrim').forEach(s=>s.classList.remove('open')); }
+  function counterBid(){
+    const v=parseInt(document.getElementById('counter').value,10);
+    if(!v||v<6800){ toast('Your counter can\'t be below your £6,800 closing bid','bad'); return; }
+    if(v>=7400){ toast('That\'s at or above the seller\'s offer — just accept it','warn'); return; }
+    toast('Counter of £'+v.toLocaleString()+' sent — the seller has 24 hours','good'); closeAll();
+  }
+  // demo 72h clock
+  let s=71*3600+42*60;
+  setInterval(()=>{ s--; const h=Math.floor(s/3600),m=Math.floor(s%3600/60);
+    document.getElementById('payclock').textContent=`Pay within ${h}h ${String(m).padStart(2,'0')}m`; },1000);
+</script>
+</body></html>

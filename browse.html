@@ -1,0 +1,63 @@
+<!doctype html><html lang="en-GB"><head>
+<meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Browse this week's auction — Auction My Car</title>
+<link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Hanken+Grotesk:wght@400;600;700;800&family=JetBrains+Mono:wght@500;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="assets/amc.css">
+<style>
+  .toolbar{display:grid;grid-template-columns:1fr auto auto auto auto;gap:10px;margin:22px 0 20px}
+  @media(max-width:860px){.toolbar{grid-template-columns:1fr 1fr}}
+  .toolbar input,.toolbar select{border:1.5px solid var(--line);border-radius:10px;padding:10px 12px;font-family:inherit;font-size:14px;background:#fff}
+  .toolbar input:focus,.toolbar select:focus{outline:none;border-color:var(--blue)}
+  .empty{padding:60px 20px;text-align:center;color:var(--muted);background:var(--grey);border-radius:var(--r)}
+</style></head><body>
+
+<header class="site" data-page="browse"></header>
+
+<section style="background:linear-gradient(180deg,#fff,var(--grey));border-bottom:1px solid var(--line)"><div class="wrap" style="padding:36px 0 26px">
+  <div class="eyebrow">This week's auction · live <span data-when></span></div>
+  <h1 class="page">Browse the lots</h1>
+  <p class="sec-sub" style="margin-bottom:0">Pre-bidding is open now. Every lot below is called live on Saturday — featured lots first.</p>
+</div></section>
+
+<div class="wrap">
+  <div class="toolbar">
+    <input id="q" placeholder="Search make, model or lot number…">
+    <select id="fMake"><option value="">All makes</option></select>
+    <select id="fCat"><option value="">Any title</option><option value="clean">Clean</option><option value="n">Cat N</option><option value="s">Cat S</option></select>
+    <select id="fBuy"><option value="">Any type</option><option value="buynow">Buy It Now available</option><option value="featured">Featured only</option><option value="noreserve">No reserve</option></select>
+    <select id="sort"><option value="new">Newest</option><option value="date">Auction date — soonest first</option><option value="low">Lowest bid</option><option value="high">Highest bid</option><option value="bids">Most bids</option></select>
+  </div>
+  <div class="grid" id="results"></div>
+  <div class="empty hide" id="empty">No lots match those filters. Try clearing one or two — or check back as new listings are approved through the week.</div>
+</div>
+
+<footer class="site"></footer>
+<script src="assets/amc.js"></script>
+<script>
+  const makeSel=document.getElementById('fMake');
+  [...new Set(LOTS.map(l=>l.make))].sort().forEach(m=>makeSel.insertAdjacentHTML('beforeend',`<option>${m}</option>`));
+  const ids=['q','fMake','fCat','fBuy','sort'];
+  ids.forEach(id=>document.getElementById(id).addEventListener('input',draw));
+  function draw(){
+    const q=document.getElementById('q').value.toLowerCase(),
+          mk=document.getElementById('fMake').value,
+          ct=document.getElementById('fCat').value,
+          ty=document.getElementById('fBuy').value,
+          so=document.getElementById('sort').value;
+    let out=LOTS.filter(l=>
+      (!q || (l.make+' '+l.model+' '+l.id).toLowerCase().includes(q)) &&
+      (!mk || l.make===mk) && (!ct || l.cat===ct) &&
+      (ty!=='buynow' || l.buyNow) && (ty!=='featured' || l.featured) && (ty!=='noreserve' || l.reserve==null)
+    );
+    if(so==='date') out.sort((a,b)=>(a.week||0)-(b.week||0));
+    if(so==='low') out.sort((a,b)=>a.cur-b.cur);
+    if(so==='high') out.sort((a,b)=>b.cur-a.cur);
+    if(so==='bids') out.sort((a,b)=>b.bids-a.bids);
+    document.getElementById('results').innerHTML=out.map(lotCard).join('');
+    document.getElementById('empty').classList.toggle('hide',out.length>0);
+  }
+  const p=new URLSearchParams(location.search); if(p.get('q')) document.getElementById('q').value=p.get('q');
+  draw(); startClocks();
+</script>
+</body></html>

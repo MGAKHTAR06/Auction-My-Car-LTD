@@ -1,0 +1,131 @@
+<!doctype html><html lang="en-GB"><head>
+<meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Sell your car — Auction My Car</title>
+<link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Hanken+Grotesk:wght@400;600;700;800&family=JetBrains+Mono:wght@500;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="assets/amc.css">
+<style>
+  .steps{display:flex;gap:6px;margin:26px 0 22px}
+  .steps .s{flex:1;height:5px;border-radius:99px;background:var(--line)}
+  .steps .s.on{background:var(--blue)}
+  .stephead{display:flex;justify-content:space-between;align-items:baseline;margin-bottom:14px}
+  .stephead .n{font-family:"JetBrains Mono",monospace;color:var(--muted);font-size:12px;font-weight:700}
+  .drop{border:2px dashed var(--line);border-radius:12px;padding:28px;text-align:center;color:var(--muted);
+    font-size:13.5px;cursor:pointer;background:var(--grey)}
+  .drop:hover{border-color:var(--blue);color:var(--blue)}
+  .adminonly{background:var(--amber-050);border:1px solid #f0d590;border-radius:10px;padding:10px 12px;font-size:12.5px;color:var(--amber-900);margin-top:8px}
+  .fees{background:var(--navy);color:#fff;border-radius:14px;padding:18px}
+  .fees .row{display:flex;justify-content:space-between;font-size:14px;padding:7px 0;border-bottom:1px solid rgba(255,255,255,.12)}
+  .fees .row:last-child{border:none;font-weight:800;font-size:16px}
+</style></head><body>
+
+<header class="site" data-page="sell"></header>
+
+<div class="wrap" style="max-width:760px;padding-bottom:60px">
+  <div style="padding-top:34px">
+    <div class="eyebrow">Sell your car</div>
+    <h1 class="page" style="font-size:30px">List for Saturday's auction</h1>
+    <p class="sec-sub">Selling needs the same one-time £5 ID verification as bidding — if you haven’t verified yet you’ll be sent there first. Then it’s £25 to list. Every listing is reviewed by a real person before it goes live — edits before approval are free, and the honest damage declaration you write here is what protects you if a buyer ever disputes.</p>
+  </div>
+
+  <div class="steps" id="steps"></div>
+  <div class="panel" id="stepbox"></div>
+</div>
+
+<footer class="site"></footer>
+<script src="assets/amc.js"></script>
+<script>
+  if(!AUTH.user){ location.href='login.html?next=sell.html'; }
+  else if(!AUTH.verified){ location.href='login.html?verify=1'; }
+
+  const STEPS=['Vehicle','Specs','Photos','Description & damage','Ownership proof','Auction settings'];
+  let step=0; const F={cat:'clean',feat:false,week:0};
+  const upcoming=[0,1,2,3].map(i=>{const d=nextAuction();d.setDate(d.getDate()+7*i);return d;});
+
+  function drawSteps(){ document.getElementById('steps').innerHTML=STEPS.map((_,i)=>`<div class="s ${i<=step?'on':''}"></div>`).join(''); }
+  function head(t){ return `<div class="stephead"><h3 style="margin:0">${t}</h3><span class="n">STEP ${step+1} / 6</span></div>`; }
+  function navBtns(canNext=true){
+    return `<div style="display:flex;gap:10px;margin-top:18px">
+      ${step>0?'<button class="btn ghost" onclick="go(-1)">Back</button>':''}
+      <div class="grow"></div>
+      <button class="btn" onclick="go(1)" ${canNext?'':'disabled'}>${step===5?'Pay & submit for review':'Continue'}</button></div>`;
+  }
+  function draw(){
+    drawSteps();
+    const b=document.getElementById('stepbox');
+    if(step===0) b.innerHTML=head('Vehicle basics')+`
+      <div class="row2"><div class="field"><label>Make</label><input id="f-make" value="${F.make||''}" placeholder="Ford"></div>
+      <div class="field"><label>Model</label><input id="f-model" value="${F.model||''}" placeholder="Fiesta 1.0 Zetec"></div></div>
+      <div class="row2"><div class="field"><label>Year</label><input id="f-year" type="number" value="${F.year||''}" placeholder="2018"></div>
+      <div class="field"><label>Mileage</label><input id="f-miles" type="number" value="${F.miles||''}" placeholder="52000"></div></div>
+      <div class="row2"><div class="field"><label>Registration</label><input id="f-reg" value="${F.reg||''}" placeholder="AB18 CDE" style="text-transform:uppercase"></div>
+      <div class="field"><label>Title category</label><select id="f-cat">
+        <option value="clean" ${F.cat==='clean'?'selected':''}>Clean</option>
+        <option value="n" ${F.cat==='n'?'selected':''}>Cat N</option>
+        <option value="s" ${F.cat==='s'?'selected':''}>Cat S</option></select></div></div>`+navBtns();
+    if(step===1) b.innerHTML=head('Specifications')+`
+      <div class="row2"><div class="field"><label>Fuel</label><select id="f-fuel"><option>Petrol</option><option>Diesel</option><option>Hybrid</option><option>Electric</option></select></div>
+      <div class="field"><label>Transmission</label><select id="f-trans"><option>Manual</option><option>Auto</option></select></div></div>
+      <div class="row2"><div class="field"><label>Engine size</label><input id="f-eng" placeholder="1.0L"></div>
+      <div class="field"><label>MOT expiry</label><input id="f-mot" placeholder="Mar 2027 (or 'None')"></div></div>
+      <div class="row2"><div class="field"><label>Owners</label><input type="number" id="f-owners" placeholder="1"></div>
+      <div class="field"><label>Location (town)</label><input id="f-loc" placeholder="Birmingham"></div></div>`+navBtns();
+    if(step===2) b.innerHTML=head('Photos')+`
+      <div class="drop" onclick="toast('Photo upload connects to cloud storage in the production build','warn')">📷 Drag &amp; drop photos here, or tap to choose<br><span style="font-size:12px">Minimum 6 — all four sides, interior, engine bay. Honest photos sell cars.</span></div>`+navBtns();
+    if(step===3) b.innerHTML=head('Description & damage declaration')+`
+      <div class="field"><label>Description</label><textarea id="f-desc" placeholder="Condition, recent work, service history, extras…">${F.desc||''}</textarea></div>
+      <div class="field"><label>Damage declaration — required, and it protects you</label>
+        <textarea id="f-damage" placeholder='Either: "No damage except normal wear and tear" — or list every fault and damage honestly.'>${F.damage||''}</textarea>
+        <div class="help">This box is the reference every dispute is judged against. Anything declared here cannot be disputed; anything undeclared can cost you the sale and your listing fee.</div></div>`+navBtns();
+    if(step===4) b.innerHTML=head('Proof of ownership')+`
+      <p class="sub">These confirm the car is yours to sell and are used later to check the buyer receives the matching New Keeper Slip.</p>
+      <div class="drop" onclick="toast('Document upload connects to secure storage in the production build','warn')">📄 Upload all four pages of the V5C (photos or PDF)</div>
+      <div class="drop" style="margin-top:10px" onclick="toast('Document upload connects to secure storage in the production build','warn')">🔍 Photo of the VIN through the front windscreen</div>
+      <div class="adminonly">🔒 Admin-only — these never appear on your listing and are visible only to the review team.</div>`+navBtns();
+    if(step===5){
+      const total=LISTING_FEE+(F.feat?FEATURED_FEE:0);
+      b.innerHTML=head('Auction settings & payment')+`
+      <div class="row2"><div class="field"><label>Starting bid (£)</label><input id="f-start" type="number" placeholder="3000"></div>
+      <div class="field"><label>Hidden reserve (£, optional)</label><input id="f-reserve" type="number" placeholder="Leave blank for no reserve"></div></div>
+      <div class="row2"><div class="field"><label>Buy It Now (£, optional)</label><input id="f-buynow" type="number" placeholder="Optional fixed price"></div>
+      <div class="field"><label>Which Saturday?</label><select id="f-week" onchange="F.week=+this.value">
+        ${upcoming.map((d,i)=>`<option value="${i}">${d.toLocaleDateString('en-GB',{day:'numeric',month:'long'})} — 8:00 AM</option>`).join('')}</select>
+        <div class="help">Locked once approved. If your listing is rejected you can change it while editing.</div></div></div>
+      <label class="checkline" style="background:var(--amber-050);border:1px solid #f0d590;border-radius:10px;padding:12px">
+        <input type="checkbox" id="f-feat" ${F.feat?'checked':''} onchange="F.feat=this.checked;draw()">
+        <span><b>★ Feature this car — £10</b><br><span style="font-size:12.5px">Runs first on Saturday, 30-second hammer timer, home-page rotation. 21 slots per auction, first paid first placed — <b>7 left this week</b>.</span></span></label>
+      <div class="fees" style="margin-top:16px">
+        <div class="row"><span>Listing fee (includes human review)</span><span class="mono">£25.00</span></div>
+        ${F.feat?'<div class="row"><span>Featured slot</span><span class="mono">£10.00</span></div>':''}
+        <div class="row"><span>Total to pay now</span><span class="mono">£${total}.00</span></div>
+      </div>
+      <p class="help" style="margin-top:10px">Non-refundable — it pays for the review of your listing. Relisting later: £5 after a failed reserve negotiation · free if your buyer defaults · £25 after an upheld dispute.</p>`+navBtns();
+    }
+    if(step===6) b.innerHTML=`
+      <div style="text-align:center;padding:14px 0">
+        <div style="width:64px;height:64px;border-radius:50%;background:var(--green-050);display:grid;place-items:center;margin:0 auto 16px">
+          <svg viewBox="0 0 24 24" width="32" height="32" fill="none"><path d="M5 12l4 4 10-10" stroke="#22C55E" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"/></svg></div>
+        <h3 style="margin:0 0 8px">Submitted for review</h3>
+        <p class="sub">Your ${F.year||''} ${F.make||'car'} ${F.model||''} is in the approval queue for the auction on <b>${upcoming[F.week].toLocaleDateString('en-GB',{day:'numeric',month:'long'})}</b>. We'll email you when it's approved — or with a reason and free edits if anything needs changing.</p>
+        <a class="btn" href="seller.html">Go to your listings</a>
+      </div>`;
+  }
+  function go(d){
+    if(d>0&&step===0){
+      F.make=val('f-make');F.model=val('f-model');F.year=val('f-year');F.miles=val('f-miles');F.reg=val('f-reg');F.cat=val('f-cat');
+      if(!F.make||!F.model){ toast('Make and model are required','warn'); return; }
+    }
+    if(d>0&&step===3){
+      F.desc=val('f-desc');F.damage=val('f-damage');
+      if(!F.damage){ toast('The damage declaration is required — even if it\'s just "no damage except normal wear and tear"','warn'); return; }
+    }
+    if(d>0&&step===5){
+      if(!val('f-start')){ toast('Set a starting bid','warn'); return; }
+      toast(`£${LISTING_FEE+(F.feat?FEATURED_FEE:0)} paid (demo) — listing submitted`,'good');
+    }
+    step+=d; draw(); window.scrollTo({top:0,behavior:'smooth'});
+  }
+  function val(id){ const e=document.getElementById(id); return e?e.value.trim():''; }
+  draw();
+</script>
+</body></html>

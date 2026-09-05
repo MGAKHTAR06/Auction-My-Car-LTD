@@ -1,0 +1,152 @@
+<!doctype html><html lang="en-GB"><head>
+<meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Lot details — Auction My Car</title>
+<link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Hanken+Grotesk:wght@400;600;700;800&family=JetBrains+Mono:wght@500;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="assets/amc.css">
+<style>
+  .layout{display:grid;grid-template-columns:1.15fr .85fr;gap:26px;padding:30px 0 10px}
+  @media(max-width:900px){.layout{grid-template-columns:1fr}}
+  .gallery{background:radial-gradient(120% 90% at 20% 0%,#dbe7fb,#b7c6e0);border-radius:var(--r);aspect-ratio:16/10;
+    display:grid;place-items:center;position:relative;border:1px solid var(--line)}
+  .gallery svg{width:60%;opacity:.55}
+  .thumbs{display:flex;gap:8px;margin-top:10px}
+  .thumbs div{width:72px;height:52px;border-radius:8px;background:radial-gradient(120% 90% at 20% 0%,#e5eefb,#c3d0e6);border:1.5px solid var(--line);cursor:pointer}
+  .thumbs div.on{border-color:var(--blue)}
+  .dl{display:grid;grid-template-columns:repeat(3,1fr);gap:12px 16px;padding:16px 0;border-top:1px solid var(--line);border-bottom:1px solid var(--line);margin:18px 0}
+  @media(max-width:560px){.dl{grid-template-columns:repeat(2,1fr)}}
+  .dl .k{color:var(--muted);font-size:10.5px;text-transform:uppercase;letter-spacing:.06em;font-weight:700}
+  .dl .vv{font-size:14px;font-weight:600}
+  .locked{filter:blur(5px);user-select:none;pointer-events:none}
+  .gatecard{background:var(--blue-050);border:1px solid #cfe0fb;border-radius:12px;padding:16px;margin:14px 0}
+  .bidbox{background:var(--grey);border:1px solid var(--line);border-radius:var(--r);padding:18px;position:sticky;top:80px}
+  .bidline{display:flex;gap:10px;margin-top:12px}
+  .inp{flex:1;display:flex;align-items:center;gap:6px;background:#fff;border:1.5px solid var(--line);border-radius:10px;padding:0 12px}
+  .inp:focus-within{border-color:var(--blue)}
+  .inp input{border:none;outline:none;font-family:"JetBrains Mono",monospace;font-weight:700;font-size:17px;width:100%;padding:11px 0;background:transparent}
+  .brow{display:flex;justify-content:space-between;padding:8px 0;border-bottom:1px solid var(--line);font-size:13.5px}
+  .brow:last-child{border:none}.brow .amt{font-family:"JetBrains Mono",monospace;font-weight:700}
+  .brow.top .amt{color:var(--green)}
+  .damagebox{background:var(--amber-050);border:1px solid #f0d590;border-radius:12px;padding:14px 16px;margin:14px 0}
+  .damagebox b{color:var(--amber-900)}
+</style></head><body>
+
+<header class="site" data-page="browse"></header>
+<div class="wrap"><div class="layout" id="page"></div>
+  <section class="band" style="padding-top:26px">
+    <div class="eyebrow">More like this</div><div class="sec-title" style="font-size:22px">Similar cars</div>
+    <div class="grid" id="similar" style="margin-top:16px"></div>
+  </section>
+</div>
+
+<!-- enter-auction modal: deposit + the two consents -->
+<div class="scrim" id="enterScrim">
+  <div class="modal">
+    <h3>Enter Saturday's auction</h3>
+    <p>Bidding needs a <b>£50 card hold</b> — released in full after the auction if you don't win, credited to your payment if you do.</p>
+    <label class="checkline"><input type="checkbox" id="c1"> I accept the <a href="terms.html" style="color:var(--blue)">Terms and Conditions</a>.</label>
+    <label class="checkline"><input type="checkbox" id="c2"> I understand that <b>all bids placed in this auction are legally binding</b>.</label>
+    <p class="help" style="margin:8px 0 16px">Both acceptances are recorded with a timestamp for this auction.</p>
+    <button class="btn block" onclick="confirmEnter()">Authorise £50 hold &amp; enter</button>
+    <button class="btn ghost block" style="margin-top:8px" onclick="document.getElementById('enterScrim').classList.remove('open')">Not now</button>
+  </div>
+</div>
+
+<footer class="site"></footer>
+<script src="assets/amc.js"></script>
+<script>
+  const id=new URLSearchParams(location.search).get('lot')||LOTS[0].id;
+  const l=LOTS.find(x=>x.id===id)||LOTS[0];
+  document.title=`${l.year} ${l.make} ${l.model} — Lot ${l.id} · Auction My Car`;
+  const v=AUTH.verified, u=AUTH.user;
+  const minNext=l.cur+increment(l.cur);
+  const history=[...Array(Math.min(l.bids,5))].map((_,i)=>({who:['M***2','A***8','K***4','J***1','T***9'][i%5],amt:l.cur-i*increment(l.cur)})).filter(b=>b.amt>=l.start);
+
+  function specRow(k,val,lock){ return `<div><div class="k">${k}</div><div class="vv ${lock?'locked':''}">${val}</div></div>`; }
+
+  document.getElementById('page').innerHTML=`
+  <div>
+    <div class="gallery">${CAR_SVG}<span class="badge lotno">LOT ${l.id}</span>${catBadge(l.cat)}${l.featured?'<span class="badge feat">★ Featured · 30s hammer</span>':''}</div>
+    <div class="thumbs"><div class="on"></div><div></div><div></div><div></div></div>
+
+    <h1 class="page" style="font-size:26px;margin-top:20px">${l.year} ${l.make} ${l.model}</h1>
+    <div style="display:flex;gap:10px;align-items:center;margin-top:6px">
+      ${plate(l.reg,!v)}<span style="color:var(--muted);font-size:13.5px">${l.loc} · Private seller</span>
+    </div>
+
+    ${!v?`<div class="gatecard"><b>Some details are for verified members.</b><div class="help" style="margin-top:4px">Registration, VIN, owner history, MOT and the seller's full damage declaration unlock with a one-time £5 ID verification.</div>
+      <a class="btn sm" style="margin-top:10px" href="login.html?verify=1">Verify to see everything</a></div>`:''}
+
+    <div class="dl">
+      ${specRow('Year',l.year)}${specRow('Mileage',l.miles.toLocaleString()+' mi')}${specRow('Fuel',l.fuel)}
+      ${specRow('Engine',l.eng)}${specRow('Current bid',fmt(l.cur))}${specRow('Title',CATNAME[l.cat])}
+      ${specRow('Transmission',v?l.trans:'Verified only',!v)}${specRow('Owners',v?l.owners:'•',!v)}${specRow('MOT',v?l.mot:'Verified only',!v)}
+      ${specRow('VIN',v?l.vin:'Hidden',!v)}${specRow('Registration',v?l.reg:'Hidden',!v)}${specRow('Location',l.loc)}
+    </div>
+
+    <h3 style="margin:0 0 6px">Seller's description</h3>
+    <p style="font-size:14.5px;color:#3b424b">${l.desc}</p>
+    <div class="damagebox"><b>Damage declaration</b>
+      <p style="margin:6px 0 0;font-size:14px" class="${v?'':'locked'}">${v?l.damage:'Verified members can read the seller\'s full damage declaration — the reference every dispute is judged against.'}</p>
+    </div>
+    <p class="help">Buying at auction: faults that develop after collection are auction risk. Only damage that existed at listing and wasn't declared above can be disputed. <a href="help.html" style="color:var(--blue)">How disputes work →</a></p>
+  </div>
+
+  <div>
+    <div class="bidbox">
+      <div style="display:flex;justify-content:space-between;align-items:flex-end">
+        <div><div class="eyebrow" style="font-size:10.5px">Current bid · ${l.bids} bids</div>
+          <div class="mono" style="font-size:30px;font-weight:800">${fmt(l.cur)}</div></div>
+        <div style="text-align:right"><div class="eyebrow" style="font-size:10.5px">Min next bid</div>
+          <div class="mono" style="font-size:17px;font-weight:700">${fmt(minNext)}</div></div>
+      </div>
+      <div style="display:flex;justify-content:space-between;margin-top:10px;font-size:12.5px;color:var(--muted)">
+        <span>Hammered live <b style="color:var(--text)">${auctionDateFor(l.week).toLocaleDateString('en-GB',{weekday:'long',day:'numeric',month:'long'})} · 8AM</b></span>
+        <span class="chip">${timerFor(l)}s hammer timer</span>
+      </div>
+      <div class="bidline">
+        <div class="inp"><span style="color:var(--muted);font-weight:700">£</span><input id="bidAmt" inputmode="numeric" placeholder="${minNext}"></div>
+        <button class="btn" onclick="tryBid()">Pre-bid</button>
+      </div>
+      <div class="help" id="bidHint">Increments: £50 to £999 · £100 to £4,999 · £200 above. Minimum first bid £${MIN_BID}.</div>
+      ${l.buyNow?`<button class="btn green block" style="margin-top:12px" onclick="tryBuyNow()">Buy It Now — ${fmt(l.buyNow)}</button>`:''}
+      ${l.reserve!=null?`<div class="help" style="margin-top:10px">This lot has a hidden reserve. Reserve status is shown during live bidding on Saturday.</div>`
+                       :`<div style="margin-top:10px;font-size:12.5px;font-weight:700;color:var(--green)">✓ No reserve — sells to the highest bid</div>`}
+      <div style="margin-top:16px">
+        <div class="eyebrow" style="font-size:10.5px;margin-bottom:6px">Bid history</div>
+        ${history.map((b,i)=>`<div class="brow ${i===0?'top':''}"><span>${b.who}</span><span class="amt">${fmt(b.amt)}</span></div>`).join('')||'<div class="help">No bids yet — be the first.</div>'}
+      </div>
+    </div>
+  </div>`;
+
+  document.getElementById('similar').innerHTML=LOTS.filter(x=>x.id!==l.id).slice(0,3).map(lotCard).join('');
+
+  function tryBid(){
+    if(!u){ location.href='login.html?next=lot.html?lot='+l.id; return; }
+    if(!v){ location.href='login.html?verify=1'; return; }
+    if(!AUTH.entered){ document.getElementById('enterScrim').classList.add('open'); return; }
+    const amt=parseInt(document.getElementById('bidAmt').value.replace(/[^\d]/g,''),10);
+    const hint=document.getElementById('bidHint');
+    if(!amt){ hint.className='err'; hint.textContent='Enter an amount.'; return; }
+    if(amt<Math.max(minNext,MIN_BID)){ hint.className='err'; hint.textContent=`Your bid must be at least ${fmt(Math.max(minNext,MIN_BID))}.`; return; }
+    l.cur=amt; l.bids++;
+    toast('Pre-bid placed — you\'re the high bidder','good');
+    const big=document.querySelector('.bidbox .mono'); if(big) big.textContent=fmt(amt);
+    const inp=document.getElementById('bidAmt'); inp.value=''; inp.placeholder=amt+increment(amt);
+    hint.className='help'; hint.textContent='You\'re the high bidder at '+fmt(amt)+'. Next bid: '+fmt(amt+increment(amt))+'.';
+  }
+  function tryBuyNow(){
+    if(!u){ location.href='login.html'; return; }
+    if(!v){ location.href='login.html?verify=1'; return; }
+    if(!AUTH.entered){ document.getElementById('enterScrim').classList.add('open'); return; }
+    location.href='checkout.html?lot='+l.id+'&mode=buynow';
+  }
+  function confirmEnter(){
+    if(!document.getElementById('c1').checked||!document.getElementById('c2').checked){ toast('Both boxes are required to enter','warn'); return; }
+    AUTH.enter();
+    document.getElementById('enterScrim').classList.remove('open');
+    toast('£50 hold authorised — you can bid all week','good');
+  }
+  startClocks();
+</script>
+</body></html>

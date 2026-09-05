@@ -1,0 +1,134 @@
+<!doctype html><html lang="en-GB"><head>
+<meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Auction My Car — UK weekly live car auction</title>
+<meta name="description" content="Buy and sell cars at a live UK auction every Saturday. ID-verified members, protected payments, cars stay with their owners until collection.">
+<link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Hanken+Grotesk:wght@400;600;700;800&family=JetBrains+Mono:wght@500;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="assets/amc.css">
+<style>
+  .hero{background:linear-gradient(180deg,#fff,var(--grey));border-bottom:1px solid var(--line)}
+  .hero-in{display:grid;grid-template-columns:1.15fr .85fr;gap:38px;align-items:center;padding:58px 0 52px}
+  @media(max-width:880px){.hero-in{grid-template-columns:1fr;padding:40px 0}}
+  .live-eyebrow{display:inline-flex;align-items:center;gap:8px;font-size:13px;font-weight:700;color:var(--blue);
+    background:var(--blue-050);padding:6px 12px;border-radius:999px}
+  .live-eyebrow .d{width:8px;height:8px;border-radius:50%;background:var(--green);animation:pulse 2s infinite}
+  @keyframes pulse{0%{box-shadow:0 0 0 0 rgba(40,167,69,.5)}70%{box-shadow:0 0 0 7px rgba(40,167,69,0)}100%{box-shadow:0 0 0 0 rgba(40,167,69,0)}}
+  h1{font-size:clamp(34px,5vw,52px);line-height:1.05;letter-spacing:-.035em;margin:16px 0 14px;font-weight:800}
+  .sub{font-size:17.5px;color:#3b424b;max-width:47ch;margin:0 0 24px}
+  .micro{margin-top:16px;font-size:13.5px;color:var(--muted);display:flex;gap:16px;flex-wrap:wrap}
+  .micro b{color:var(--text)}
+  .featwrap{position:relative}
+  .dots{display:flex;gap:7px;justify-content:center;margin-top:14px}
+  .dots button{width:9px;height:9px;border-radius:50%;border:none;background:#cdd6e4;padding:0}
+  .dots button.on{background:var(--blue)}
+  .track2{display:grid;grid-template-columns:1fr 1fr;gap:22px}
+  @media(max-width:840px){.track2{grid-template-columns:1fr}}
+  .trackcard{background:#fff;border:1px solid var(--line);border-radius:18px;padding:26px;box-shadow:var(--shadow)}
+  .trackcard.sellside{background:var(--navy);color:#fff;border-color:transparent}
+  .step{display:flex;gap:13px;margin-bottom:14px}
+  .step .n{flex:none;width:28px;height:28px;border-radius:8px;background:var(--blue-050);color:var(--blue);
+    font-weight:800;display:grid;place-items:center;font-size:13px;font-family:"JetBrains Mono",monospace}
+  .sellside .step .n{background:rgba(255,255,255,.12);color:#fff}
+  .step b{display:block;font-size:14.5px}.step span{font-size:13px;color:var(--muted)}
+  .sellside .step span{color:#bcd0f2}
+</style></head><body>
+
+<header class="site" data-page="home"></header>
+
+<section class="hero"><div class="wrap hero-in">
+  <div>
+    <span class="live-eyebrow"><span class="d"></span> Live auction every Saturday · 8:00 AM</span>
+    <h1>Buy and sell cars<br>at a live weekly auction.</h1>
+    <p class="sub">Private cars and salvage, hammered one lot at a time. Browse free, verify once to bid, and pay only if you win — the car stays with its owner until you collect.</p>
+    <div style="display:flex;gap:12px;flex-wrap:wrap">
+      <a class="btn lg" href="browse.html">Browse this week's lots</a>
+      <a class="btn ghost lg" href="sell.html">Sell your car</a>
+    </div>
+    <div class="micro"><span><b>£25</b> to list</span><span><b>ID-verified</b> members</span><span><b>Money held</b> until handover checks clear</span></div>
+  </div>
+  <div class="clockcard">
+    <div class="lab">Next live auction</div>
+    <div class="mono" data-when style="margin-top:6px;color:#dce8fb;font-size:15px">—</div>
+    <div class="digits">
+      <div class="unit"><div class="v mono" id="cd-d">0</div><div class="u">Days</div></div>
+      <div class="unit"><div class="v mono" id="cd-h">0</div><div class="u">Hrs</div></div>
+      <div class="unit"><div class="v mono" id="cd-m">0</div><div class="u">Min</div></div>
+      <div class="unit"><div class="v mono" id="cd-s">0</div><div class="u">Sec</div></div>
+    </div>
+    <div style="display:flex;justify-content:space-between;margin-top:16px;padding-top:14px;border-top:1px solid rgba(255,255,255,.14);font-size:13.5px;color:#cfe0fb">
+      <span><b style="color:#fff" id="lotcount">—</b> cars entered</span>
+      <a href="live.html" style="color:#fff;font-weight:700">Auction room →</a>
+    </div>
+  </div>
+</div></section>
+
+<section class="band"><div class="wrap">
+  <div style="display:flex;align-items:flex-end;justify-content:space-between;gap:16px;margin-bottom:20px">
+    <div><div class="eyebrow">★ Featured this week</div><div class="sec-title">Featured cars</div>
+      <p class="sec-sub" style="margin:4px 0 0">Featured lots run first on Saturday and hammer on a 30-second timer.</p></div>
+    <a class="btn ghost" href="browse.html">See all lots</a>
+  </div>
+  <div class="grid" id="featgrid"></div>
+  <div class="dots" id="featdots"></div>
+</div></section>
+
+<section class="band grey"><div class="wrap">
+  <div class="eyebrow">Just in</div><div class="sec-title">Recently added</div>
+  <p class="sec-sub">Fresh listings approved for the next auction. Pre-bidding is open now.</p>
+  <div class="grid g4" id="recentgrid"></div>
+</div></section>
+
+<section class="band" id="how"><div class="wrap">
+  <div class="eyebrow">How it works</div><div class="sec-title">Two ways in: bid, or sell</div>
+  <p class="sec-sub">Same Saturday auction, two journeys.</p>
+  <div class="track2">
+    <div class="trackcard">
+      <h3 style="margin:0 0 14px">🔨 How to bid</h3>
+      <div class="step"><span class="n">1</span><div><b>Join free, verify once (£5)</b><span>A one-time ID check unlocks bidding and full listing details.</span></div></div>
+      <div class="step"><span class="n">2</span><div><b>Enter Saturday's auction</b><span>A £50 card hold — released in full if you don't win, credited to your payment if you do.</span></div></div>
+      <div class="step"><span class="n">3</span><div><b>Pre-bid all week, then go live</b><span>Lots run one at a time. Every bid resets the hammer timer.</span></div></div>
+      <div class="step"><span class="n">4</span><div><b>Win, pay in 72 hours, collect</b><span>Pay through the platform; we release contact details and hold the money until handover checks clear.</span></div></div>
+      <a class="btn" href="browse.html">Browse the lots</a>
+    </div>
+    <div class="trackcard sellside">
+      <h3 style="margin:0 0 14px">🚗 How to sell</h3>
+      <div class="step"><span class="n">1</span><div><b>List for £25</b><span>Photos, honest description, your damage declaration, proof of ownership. Add a reserve or Buy It Now if you like.</span></div></div>
+      <div class="step"><span class="n">2</span><div><b>We review it</b><span>Every listing is checked by a real person before it goes live. Edits before approval are free.</span></div></div>
+      <div class="step"><span class="n">3</span><div><b>It sells live on Saturday</b><span>Under reserve? You can accept, reject or counter the top bid — three rounds, numbers only.</span></div></div>
+      <div class="step"><span class="n">4</span><div><b>Hand over, get paid</b><span>Buyer collects car + New Keeper Slip, you post the V5C and upload proof — funds release after our check.</span></div></div>
+      <a class="btn white" href="sell.html">List your car</a>
+    </div>
+  </div>
+</div></section>
+
+<section class="band"><div class="wrap">
+  <div class="clockcard" style="text-align:center;padding:42px">
+    <h2 style="margin:0 0 8px;font-size:clamp(24px,3.4vw,34px);letter-spacing:-.03em">Saturday is coming.</h2>
+    <p style="margin:0 0 22px;color:#dce8fb">List your car this week, or get verified and be in the room when the first lot is called.</p>
+    <div style="display:flex;gap:12px;justify-content:center;flex-wrap:wrap">
+      <a class="btn white lg" href="sell.html">Sell your car</a>
+      <a class="btn lg" style="background:transparent;border:1px solid rgba(255,255,255,.5)" href="browse.html">Browse auction</a>
+    </div>
+  </div>
+</div></section>
+
+<footer class="site"></footer>
+
+<script src="assets/amc.js"></script>
+<script>
+  document.getElementById('lotcount').textContent=LOTS.length;
+  // Featured rotation: 3 per slide across the featured pool (cap 21)
+  const featured=LOTS.filter(l=>l.featured);
+  const slides=[]; for(let i=0;i<featured.length;i+=3) slides.push(featured.slice(i,i+3));
+  let slide=0;
+  function drawFeat(){
+    document.getElementById('featgrid').innerHTML=slides[slide].map(lotCard).join('');
+    document.getElementById('featdots').innerHTML=slides.map((_,i)=>`<button class="${i===slide?'on':''}" aria-label="Slide ${i+1}" onclick="goSlide(${i})"></button>`).join('');
+  }
+  function goSlide(i){slide=i;drawFeat();}
+  drawFeat();
+  if(slides.length>1) setInterval(()=>{slide=(slide+1)%slides.length;drawFeat();},6000);
+  document.getElementById('recentgrid').innerHTML=LOTS.filter(l=>!l.featured).slice(0,4).map(lotCard).join('');
+  startClocks();
+</script>
+</body></html>

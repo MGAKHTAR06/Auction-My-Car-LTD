@@ -1,0 +1,77 @@
+<!doctype html><html lang="en-GB"><head>
+<meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Checkout — Auction My Car</title>
+<link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Hanken+Grotesk:wght@400;600;700;800&family=JetBrains+Mono:wght@500;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="assets/amc.css">
+<style>
+  .co{display:grid;grid-template-columns:1fr .9fr;gap:26px;padding:34px 0 60px}
+  @media(max-width:860px){.co{grid-template-columns:1fr}}
+  .order .row{display:flex;justify-content:space-between;padding:11px 0;border-bottom:1px solid var(--line);font-size:14.5px}
+  .order .row:last-child{border:none;font-weight:800;font-size:17px}
+  .order .row .mono{font-weight:700}
+  .credit{color:var(--green);font-weight:700}
+  .cardbox{background:#fff;border:1.5px solid var(--line);border-radius:12px;padding:14px;display:flex;gap:10px;align-items:center}
+</style></head><body>
+
+<header class="site"></header>
+<div class="wrap"><div class="co">
+  <div>
+    <div class="eyebrow">Checkout</div>
+    <h1 class="page" style="font-size:28px" id="title">Pay for your car</h1>
+    <p class="sec-sub" id="sub"></p>
+
+    <div class="panel">
+      <h3>Payment</h3><p class="sub">One card payment, split automatically — the car money is held for the seller until handover checks clear; the fees are ours.</p>
+      <div class="field"><label>Name on card</label><input placeholder="A MORGAN"></div>
+      <div class="cardbox">
+        <svg width="26" height="18" viewBox="0 0 26 18"><rect width="26" height="18" rx="3" fill="#13294B"/><rect x="3" y="12" width="8" height="2.4" rx="1" fill="#fff"/></svg>
+        <input placeholder="Card number" style="border:none;outline:none;flex:1;font-family:'JetBrains Mono',monospace;font-weight:600;font-size:14px">
+        <input placeholder="MM/YY" style="border:none;outline:none;width:56px;font-family:'JetBrains Mono',monospace;font-size:14px">
+        <input placeholder="CVC" style="border:none;outline:none;width:40px;font-family:'JetBrains Mono',monospace;font-size:14px">
+      </div>
+      <button class="btn lg block" style="margin-top:16px" onclick="pay()" id="paybtn">Pay</button>
+      <p class="help" style="margin-top:10px">Powered by Stripe in production. On success we release the seller's contact details to you (and yours to them) and hold the car money until the keeper slip, your two videos and the seller's V5C proof of posting all check out.</p>
+    </div>
+  </div>
+
+  <div>
+    <div class="panel order" id="order"></div>
+    <div class="panel" style="margin-top:14px;background:var(--amber-050);border-color:#f0d590">
+      <b style="font-size:14px">⏱ 72-hour window</b>
+      <p class="help" style="margin:6px 0 0">Pay inside 72 hours of the hammer. Miss it and your £50 hold is captured (£25 to the seller, £25 platform) — and the bid remains binding: complete the purchase, or exit for a further £100.</p>
+    </div>
+  </div>
+</div></div>
+
+<footer class="site"></footer>
+<script src="assets/amc.js"></script>
+<script>
+  if(!AUTH.user) location.href='login.html?next=checkout.html'+location.search;
+  const P=new URLSearchParams(location.search);
+  const l=LOTS.find(x=>x.id===(P.get('lot')||'0119'))||LOTS[1];
+  const buynow=P.get('mode')==='buynow';
+  const price=buynow?(l.buyNow||l.cur):l.cur;
+  const fee=auctionFee(price);
+  const credit=DEPOSIT;                       // £50 deposit converts into the payment
+  const preTotal=price+fee;
+  const proc=processingFee(preTotal);
+  const total=+(preTotal+proc-credit).toFixed(2);
+
+  document.getElementById('title').textContent=`${buynow?'Buy It Now':'Pay for'} — ${l.year} ${l.make} ${l.model}`;
+  document.getElementById('sub').textContent=`Lot ${l.id} · ${buynow?'fixed price':'winning bid'} ${fmt(price)}. VAT: not currently charged.`;
+  document.getElementById('order').innerHTML=`
+    <h3>Order summary</h3>
+    <div class="row"><span>Vehicle price ${buynow?'(Buy It Now)':'(winning bid)'}</span><span class="mono">${fmt(price)}</span></div>
+    <div class="row"><span>Auction fee ${fee===+(price*0.055).toFixed(2)?'(5.5% band)':'(fee band)'}</span><span class="mono">${fmt(fee)}</span></div>
+    <div class="row"><span>Payment processing (pass-through)</span><span class="mono">${fmt(proc)}</span></div>
+    <div class="row"><span class="credit">£50 bidding deposit — credited</span><span class="mono credit">− ${fmt(credit)}</span></div>
+    <div class="row"><span>Total to pay</span><span class="mono">${fmt(total)}</span></div>`;
+  document.getElementById('paybtn').textContent='Pay '+fmt(total);
+
+  function pay(){
+    toast('Payment received (demo) — contact details released to both parties','good');
+    setTimeout(()=>location.href='dashboard.html#won',1200);
+  }
+</script>
+</body></html>

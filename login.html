@@ -1,0 +1,110 @@
+<!doctype html><html lang="en-GB"><head>
+<meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Log in or join — Auction My Car</title>
+<link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Hanken+Grotesk:wght@400;600;700;800&family=JetBrains+Mono:wght@500;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="assets/amc.css">
+<style>
+  .authwrap{max-width:440px;margin:44px auto 60px;padding:0 20px}
+  .tabs{display:flex;background:var(--grey);border:1px solid var(--line);border-radius:12px;padding:4px;margin-bottom:22px}
+  .tabs button{flex:1;border:none;background:transparent;padding:10px;border-radius:9px;font-weight:700;font-size:14.5px;color:var(--muted)}
+  .tabs button.on{background:#fff;color:var(--text);box-shadow:0 1px 2px rgba(16,24,40,.08)}
+  .vbadge{width:54px;height:54px;border-radius:14px;background:var(--blue-050);display:grid;place-items:center;margin-bottom:12px}
+</style></head><body>
+
+<header class="site"></header>
+
+<div class="authwrap">
+  <div class="tabs" id="tabs">
+    <button class="on" onclick="show('login')">Log in</button>
+    <button onclick="show('register')">Create account</button>
+  </div>
+
+  <form id="login" class="panel" onsubmit="event.preventDefault();doLogin()">
+    <h3>Welcome back</h3><p class="sub">Log in to bid, sell and track your auctions.</p>
+    <div class="field"><label>Email</label><input type="email" id="li-email" required placeholder="you@email.com"></div>
+    <div class="field"><label>Password</label><input type="password" required placeholder="••••••••"></div>
+    <div style="display:flex;justify-content:space-between;font-size:13px;margin:-2px 0 16px">
+      <label class="checkline" style="margin:0"><input type="checkbox"> Remember me</label>
+      <a href="#" style="color:var(--blue)">Forgot password?</a>
+    </div>
+    <button class="btn block" type="submit">Log in</button>
+  </form>
+
+  <form id="register" class="panel hide" onsubmit="event.preventDefault();doRegister()">
+    <h3>Create your account</h3><p class="sub">Free to join and browse. Verify only when you're ready to bid or sell.</p>
+    <div class="row2">
+      <div class="field"><label>First name</label><input id="rg-first" required placeholder="Alex"></div>
+      <div class="field"><label>Last name</label><input id="rg-last" required placeholder="Morgan"></div>
+    </div>
+    <div class="field"><label>Email</label><input type="email" id="rg-email" required placeholder="you@email.com"></div>
+    <div class="row2">
+      <div class="field"><label>Postcode</label><input required placeholder="B1 1AA" style="text-transform:uppercase"></div>
+      <div class="field"><label>Mobile</label><input type="tel" required placeholder="07…"></div>
+    </div>
+    <div class="field"><label>Password</label><input type="password" required placeholder="At least 8 characters"></div>
+    <label class="checkline"><input type="checkbox" required> I agree to the <a href="terms.html" style="color:var(--blue)">Terms of Use and Privacy Policy</a>, and understand Auction My Car is an intermediary, not the seller.</label>
+    <button class="btn block" style="margin-top:8px" type="submit">Create account</button>
+  </form>
+
+  <div id="verify" class="panel hide" style="text-align:center">
+    <div class="vbadge" style="margin:0 auto 12px"><svg viewBox="0 0 24 24" width="28" height="28" fill="none"><path d="M12 3l7 3v5c0 4.4-3 8-7 10-4-2-7-5.6-7-10V6l7-3z" stroke="#13294B" stroke-width="1.7" stroke-linejoin="round"/><path d="M9 12l2 2 4-4" stroke="#13294B" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"/></svg></div>
+    <h3>Verify your identity — £5, once</h3>
+    <p class="sub">Bidding and selling means taking on a real obligation to another member, so everyone who does either is a verified person. The one-time £5 covers the ID check and secure storage of your details. It also unlocks full listing details, VIN and registration on every lot.</p>
+    <div style="background:var(--grey);border-radius:10px;padding:12px;font-size:12.5px;color:var(--muted);margin-bottom:16px">
+      Photo ID + a quick selfie · powered by Stripe Identity in production (stubbed in this preview)</div>
+    <button class="btn block" onclick="doVerify()">Pay £5 &amp; verify</button>
+    <button class="btn ghost block" style="margin-top:8px" onclick="location.href='browse.html'">Later — take me to browse</button>
+  </div>
+
+  <div id="account" class="panel hide">
+    <h3>Your account</h3>
+    <p class="sub" id="acc-line"></p>
+    <div style="display:flex;gap:10px;flex-wrap:wrap">
+      <a class="btn" href="dashboard.html">Buyer dashboard</a>
+      <a class="btn ghost" href="seller.html">Seller dashboard</a>
+      <button class="btn ghost" onclick="AUTH.logout();location.reload()">Log out</button>
+    </div>
+    <div id="acc-verify"></div>
+  </div>
+</div>
+
+<footer class="site"></footer>
+<script src="assets/amc.js"></script>
+<script>
+  const P=new URLSearchParams(location.search);
+  function show(w){
+    ['login','register','verify','account'].forEach(x=>document.getElementById(x).classList.toggle('hide',x!==w));
+    const tb=document.querySelectorAll('#tabs button');
+    document.getElementById('tabs').classList.toggle('hide',w==='verify'||w==='account');
+    tb[0].classList.toggle('on',w==='login'); tb[1].classList.toggle('on',w==='register');
+  }
+  function doLogin(){
+    const email=document.getElementById('li-email').value;
+    AUTH.login(email.split('@')[0].replace(/^\w/,c=>c.toUpperCase()),email);
+    after();
+  }
+  function doRegister(){
+    AUTH.login(document.getElementById('rg-first').value+' '+document.getElementById('rg-last').value,document.getElementById('rg-email').value);
+    toast('Account created — check your email to confirm (demo)','good');
+    show('verify');
+  }
+  function doVerify(){
+    AUTH.verify(); toast('Verified — bidding and selling unlocked','good');
+    setTimeout(after,700);
+  }
+  function after(){
+    const next=P.get('next'); if(next){ location.href=next; return; }
+    showAccount();
+  }
+  function showAccount(){
+    show('account');
+    const u=AUTH.user;
+    document.getElementById('acc-line').textContent=`Logged in as ${u.name} (${u.email}) · ${AUTH.verified?'Verified member':'Not verified yet'}`;
+    document.getElementById('acc-verify').innerHTML=AUTH.verified?'':'<button class="btn green block" style="margin-top:14px" onclick="show(\'verify\')">Verify now (£5, once)</button>';
+  }
+  if(P.get('tab')==='register') show('register');
+  if(P.get('verify')==='1'){ if(AUTH.user){ AUTH.verified?showAccount():show('verify'); } else show('register'); }
+  else if(AUTH.user) showAccount();
+</script>
+</body></html>
