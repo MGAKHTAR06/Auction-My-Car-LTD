@@ -55,8 +55,15 @@
 <script src="assets/api.js"></script>
 <script>
   if(!AUTH.user) location.href='login.html?next=seller.html';
-  const TAGS={pending:'a',rejected:'r',listed:'g',sold:'g',unsold:'m',draft:'m',defaulted:'r'};
-  const LBL={pending:'Pending approval',rejected:'Rejected — needs changes',listed:'Live',sold:'Sold',unsold:'Unsold',draft:'Draft',defaulted:'Defaulted'};
+  const Q=new URLSearchParams(location.search);
+  if(Q.get('paid')==='1') toast('Payment received — your listing is in the approval queue','good');
+  if(Q.get('cancelled')==='1') toast('Payment cancelled — your listing is saved as awaiting payment','warn');
+  async function payFor(lotId){
+    try{ toast('Taking you to secure payment…','good'); location.href = await API.payListing(lotId); }
+    catch(e){ toast(e.message||'Could not start payment','bad'); }
+  }
+  const TAGS={pending:'a',rejected:'r',listed:'g',sold:'g',unsold:'m',draft:'a',defaulted:'r'};
+  const LBL={pending:'Pending approval',rejected:'Rejected — needs changes',listed:'Live',sold:'Sold',unsold:'Unsold',draft:'Awaiting payment',defaulted:'Defaulted'};
   API.myListings().then(rows=>{
     document.getElementById('k-live').textContent=rows.filter(r=>r.status==='listed').length;
     document.getElementById('k-pend').textContent=rows.filter(r=>r.status==='pending').length;
@@ -75,6 +82,8 @@
           ${r.status==='rejected'&&r.reject_reason?'<br><b>Reviewer\'s reason:</b> '+r.reject_reason:''}
         </p>
         ${r.status==='listed'?`<div style="margin-top:8px"><a class="btn sm ghost" href="lot.html?lot=${r.id}">View live lot</a></div>`:''}
+        ${r.status==='draft'?`<div style="margin-top:8px"><button class="btn sm" onclick="payFor('${r.id}')">Pay £${r.featured?35:25} & submit for review</button>
+          <span class="help">Your listing enters the approval queue the moment payment completes.</span></div>`:''}
       </div>`).join('') : '<p class="help">Nothing listed yet — <a href="sell.html" style="color:var(--red-brand);font-weight:700">list your first car (£25)</a>.</p>';
   }).catch(e=>{ document.getElementById('listbox').innerHTML='<p class="err">Could not load listings: '+(e.message||e)+'</p>'; });
 </script>
