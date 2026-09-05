@@ -47,7 +47,15 @@
       <div class="field"><label>Postcode</label><input required placeholder="B1 1AA" style="text-transform:uppercase"></div>
       <div class="field"><label>Mobile</label><input type="tel" required placeholder="07…"></div>
     </div>
-    <div class="field"><label>Password</label><input type="password" required placeholder="At least 8 characters"></div>
+    <div class="field"><label>Password</label><input type="password" id="rg-pass" required placeholder="Create a strong password" oninput="checkPass(this.value)">
+      <div id="passrules" style="display:grid;grid-template-columns:1fr 1fr;gap:3px 12px;margin-top:8px;font-size:12px;color:var(--muted)">
+        <span data-rule="len">○ 8+ characters</span>
+        <span data-rule="upper">○ An uppercase letter</span>
+        <span data-rule="lower">○ A lowercase letter</span>
+        <span data-rule="num">○ A number</span>
+        <span data-rule="special">○ A special character (!@#£…)</span>
+      </div>
+    </div>
     <label class="checkline"><input type="checkbox" required> I agree to the <a href="terms.html" style="color:var(--blue)">Terms of Use and Privacy Policy</a>, and understand Auction My Car is an intermediary, not the seller.</label>
     <button class="btn block" style="margin-top:8px" type="submit">Create account</button>
   </form>
@@ -102,10 +110,29 @@
       toast('Logged in','good'); if(window.renderNav) renderNav(); after();
     }catch(e){ toast(errText(e),'bad'); }
   }
+  const PASS_RULES = {
+    len:     v => v.length >= 8,
+    upper:   v => /[A-Z]/.test(v),
+    lower:   v => /[a-z]/.test(v),
+    num:     v => /[0-9]/.test(v),
+    special: v => /[^A-Za-z0-9]/.test(v)
+  };
+  function checkPass(v){
+    let ok = true;
+    for (const [k, test] of Object.entries(PASS_RULES)){
+      const el = document.querySelector('[data-rule="'+k+'"]');
+      const pass = test(v); ok = ok && pass;
+      if (el){ el.textContent = (pass?'✓ ':'○ ') + el.textContent.slice(2);
+               el.style.color = pass ? 'var(--green)' : 'var(--muted)'; }
+    }
+    return ok;
+  }
   async function doRegister(){
+    const pw = document.getElementById('rg-pass').value;
+    if (!checkPass(pw)){ toast('Password needs 8+ characters with upper & lower case, a number and a special character','warn'); return; }
     const name=document.getElementById('rg-first').value+' '+document.getElementById('rg-last').value;
     const email=document.getElementById('rg-email').value;
-    const pass=document.querySelector('#register input[type=password]').value;
+    const pass=pw;
     const tel=document.querySelector('#register input[type=tel]').value;
     try{
       const res=await API.register(name,email,pass,tel,'');
