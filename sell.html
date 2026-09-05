@@ -42,7 +42,10 @@
 
   const STEPS=['Vehicle','Specs','Photos','Description & damage','Ownership proof','Auction settings'];
   let step=0; const F={cat:'clean',feat:false,week:0};
-  const upcoming=[0,1,2,3].map(i=>{const d=nextAuction();d.setDate(d.getDate()+7*i);return d;});
+  let upcoming=[0,1,2,3].map(i=>{const d=nextAuction();d.setDate(d.getDate()+7*i);return {starts_at:d,id:null};});
+  API.upcomingAuctions().then(rows=>{
+    if(rows.length){ upcoming=rows.map(r=>({starts_at:new Date(r.starts_at), id:r.id, skipped:r.skipped})); if(step===5) draw(); }
+  }).catch(()=>{});
 
   function drawSteps(){ document.getElementById('steps').innerHTML=STEPS.map((_,i)=>`<div class="s ${i<=step?'on':''}"></div>`).join(''); }
   function head(t){ return `<div class="stephead"><h3 style="margin:0">${t}</h3><span class="n">STEP ${step+1} / 6</span></div>`; }
@@ -91,7 +94,7 @@
       <div class="field"><label>Hidden reserve (£, optional)</label><input id="f-reserve" type="number" placeholder="Leave blank for no reserve"></div></div>
       <div class="row2"><div class="field"><label>Buy It Now (£, optional)</label><input id="f-buynow" type="number" placeholder="Optional fixed price"></div>
       <div class="field"><label>Which Saturday?</label><select id="f-week" onchange="F.week=+this.value">
-        ${upcoming.map((d,i)=>`<option value="${i}">${d.toLocaleDateString('en-GB',{day:'numeric',month:'long'})} — 8:00 AM</option>`).join('')}</select>
+        ${upcoming.map((a,i)=>`<option value="${i}" ${a.skipped?'disabled':''}>${a.starts_at.toLocaleDateString('en-GB',{day:'numeric',month:'long'})} — 8:00 AM${a.skipped?' (skipped)':''}</option>`).join('')}</select>
         <div class="help">Locked once approved. If your listing is rejected you can change it while editing.</div></div></div>
       <label class="checkline" style="background:var(--amber-050);border:1px solid #f0d590;border-radius:10px;padding:12px">
         <input type="checkbox" id="f-feat" ${F.feat?'checked':''} onchange="F.feat=this.checked;draw()">
@@ -124,7 +127,10 @@
     if(d>0&&step===5){
       if(!val('f-start')){ toast('Set a starting bid','warn'); return; }
       F.start=val('f-start'); F.reserve=val('f-reserve'); F.buynow=val('f-buynow');
-      API.nextAuction().then(a=>{ F.auctionId=a.id; return API.createListing(F); })
+      Promise.resolve(upcoming[F.week] && upcoming[F.week].id
+          ? { id: upcoming[F.week].id }
+          : API.nextAuction())
+        .then(a=>{ F.auctionId=a.id; return API.createListing(F); })
         .then(()=>{ toast(`Listing submitted to the live database — £${LISTING_FEE+(F.feat?FEATURED_FEE:0)} payment attaches in phase 3`,'good'); step++; draw(); window.scrollTo({top:0,behavior:'smooth'}); })
         .catch(e=>toast(e.message||'Could not submit listing','bad'));
       return;
