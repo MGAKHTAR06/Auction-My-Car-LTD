@@ -29,7 +29,7 @@
     <select id="sort"><option value="new">Newest</option><option value="date">Auction date — soonest first</option><option value="low">Lowest bid</option><option value="high">Highest bid</option><option value="bids">Most bids</option></select>
   </div>
   <div class="grid" id="results"></div>
-  <div class="empty hide" id="empty">No lots match those filters. Try clearing one or two — or check back as new listings are approved through the week.</div>
+  <div class="empty hide" id="empty">No cars here yet. New listings appear the moment an admin approves them — or <a href='sell.html' style='color:var(--red-brand);font-weight:700'>list yours</a>.</div>
 </div>
 
 <footer class="site"></footer>
@@ -63,13 +63,11 @@
   draw(); startClocks();
   // pull real lots from the live database and put them ahead of the demo cars
   API.browse().then(rows=>{
-    if(!rows.length) return;
     const live=rows.map(liveLotToCard);
-    LOTS.length && live.push(...LOTS);          // demo cars stay as filler while stock builds
     LOTS.splice(0, LOTS.length, ...live);
     const sel=document.getElementById('fMake'); sel.innerHTML='<option value="">All makes</option>';
     [...new Set(LOTS.map(l=>l.make))].sort().forEach(m=>sel.insertAdjacentHTML('beforeend',`<option>${m}</option>`));
     draw();
-  }).catch(()=>{});
+  }).catch(e=>toast('Could not load lots: '+(e.message||e),'bad'));
 </script>
 </body></html>
