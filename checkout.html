@@ -49,7 +49,8 @@
 <script>
   if(!AUTH.user) location.href='login.html?next=checkout.html'+location.search;
   const P=new URLSearchParams(location.search);
-  const l=LOTS.find(x=>x.id===(P.get('lot')||'0119'))||LOTS[1];
+  const l={id:P.get('lot')||'',year:'',make:'Checkout',model:'',cur:0,buyNow:null};
+  toast('Checkout goes live with Stripe in phase 3 — nothing to pay yet','warn');
   const buynow=P.get('mode')==='buynow';
   const price=buynow?(l.buyNow||l.cur):l.cur;
   const fee=auctionFee(price);
