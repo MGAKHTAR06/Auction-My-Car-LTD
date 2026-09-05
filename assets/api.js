@@ -24,6 +24,7 @@ const sb = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY, {
       const name = (profile && profile.name) || session.user.email.split('@')[0];
       AUTH.login(name, session.user.email);
       if (profile && profile.verified) AUTH.verify();
+      if (window.renderNav) renderNav();
     } catch(e) { /* profile may not exist yet if trigger hasn't fired */ }
   }
   // listen for future sign-in / sign-out so every tab stays in sync
@@ -33,9 +34,10 @@ const sb = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY, {
         const { data: profile } = await sb.from('profiles').select('*').eq('id', session.user.id).single();
         AUTH.login((profile && profile.name) || session.user.email.split('@')[0], session.user.email);
         if (profile && profile.verified) AUTH.verify();
+        if (window.renderNav) renderNav();
       } catch(e) {}
     }
-    if (event === 'SIGNED_OUT') { AUTH.logout(); }
+    if (event === 'SIGNED_OUT') { AUTH.logout(); if (window.renderNav) renderNav(); }
   });
 })();
 
