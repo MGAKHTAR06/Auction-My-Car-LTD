@@ -65,7 +65,7 @@
     document.getElementById('listbox').innerHTML = rows.length ? rows.map(r=>`
       <div class="listing">
         <div style="display:flex;justify-content:space-between;flex-wrap:wrap;gap:8px;align-items:center">
-          <b>Lot ${r.lot_no} · ${r.year} ${r.make} ${r.model} ${r.featured?'★':''}</b>
+          <b>Lot ${String(r.lot_no).padStart(4,'0')} · ${r.year} ${r.make} ${r.model} ${r.featured?'★':''}</b>
           <span class="tag ${TAGS[r.status]||'m'}">${LBL[r.status]||r.status}</span>
         </div>
         <p class="help" style="margin:8px 0 0">
