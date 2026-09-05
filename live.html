@@ -61,16 +61,26 @@
       </div>
     </div>
   </div>
-  <p class="help" style="margin-top:18px">Demo room: rival bidders are simulated so you can feel the pace. In production this page runs on a live connection — every bidder sees the same timer, server-decided.</p>
+  <p class="help" style="margin-top:18px">Preview room: these are the REAL approved lots, but the timer and rival bidders are simulated in your browser and nothing here writes to the database. Phase 2 makes this fully live over Supabase Realtime — same screen, server-decided timer.</p>
 </div>
 
 <footer class="site"></footer>
 <script src="assets/amc.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script src="assets/api.js"></script>
 <script>
-  // running order: featured first (first-paid-first-placed), then the rest
-  const WK=LOTS.filter(l=>(l.week||0)===0);
-  const ORDER=[...WK.filter(l=>l.featured),...WK.filter(l=>!l.featured)];
-  let idx=0, cur=null, price=0, t=0, timerId=null, mine=false, done=[];
+  // running order: featured first (first-paid-first-placed), then the rest — from the LIVE database
+  let ORDER=[], idx=0, cur=null, price=0, t=0, timerId=null, mine=false, done=[];
+  API.browse().then(rows=>{
+    const cars=rows.map(liveLotToCard);
+    ORDER=[...cars.filter(l=>l.featured),...cars.filter(l=>!l.featured)];
+    if(!ORDER.length){
+      document.getElementById('stage').innerHTML='<div style="padding:60px 24px;text-align:center;color:var(--muted)">No approved lots in the auction yet. <a href="sell.html" style="color:var(--red-brand);font-weight:700">List a car</a> and it appears here once approved.</div>';
+      document.getElementById('lotpos').textContent='No lots yet';
+      return;
+    }
+    startLot();
+  }).catch(e=>toast('Could not load lots: '+(e.message||e),'bad'));
 
   function startLot(){
     cur=ORDER[idx]; price=cur.cur; mine=false; t=timerFor(cur);
@@ -163,6 +173,5 @@
     if(idx<ORDER.length) setTimeout(startLot,3200);
     else feed('That\'s the last lot — deposits for non-winners release automatically now.','hammer');
   }
-  startLot();
 </script>
 </body></html>
