@@ -34,6 +34,8 @@
 
 <footer class="site"></footer>
 <script src="assets/amc.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script src="assets/api.js"></script>
 <script>
   if(!AUTH.user){ location.href='login.html?next=sell.html'; }
   else if(!AUTH.verified){ location.href='login.html?verify=1'; }
@@ -121,7 +123,11 @@
     }
     if(d>0&&step===5){
       if(!val('f-start')){ toast('Set a starting bid','warn'); return; }
-      toast(`£${LISTING_FEE+(F.feat?FEATURED_FEE:0)} paid (demo) — listing submitted`,'good');
+      F.start=val('f-start'); F.reserve=val('f-reserve'); F.buynow=val('f-buynow');
+      API.nextAuction().then(a=>{ F.auctionId=a.id; return API.createListing(F); })
+        .then(()=>{ toast(`Listing submitted to the live database — £${LISTING_FEE+(F.feat?FEATURED_FEE:0)} payment attaches in phase 3`,'good'); step++; draw(); window.scrollTo({top:0,behavior:'smooth'}); })
+        .catch(e=>toast(e.message||'Could not submit listing','bad'));
+      return;
     }
     step+=d; draw(); window.scrollTo({top:0,behavior:'smooth'});
   }
