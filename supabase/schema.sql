@@ -339,6 +339,18 @@ language sql stable security definer set search_path=public as $$
    order by max(b.created_at) desc;
 $$;
 
+create or replace function public.my_wins()
+returns table (lot_id uuid, lot_no int, make text, model text, year int,
+               price int, payment_deadline timestamptz, lot_status lot_status)
+language sql stable security definer set search_path=public as $$
+  select l.id, l.lot_no, l.make, l.model, l.year,
+         (select amount from bids b where b.id = l.winning_bid),
+         l.payment_deadline, l.status
+    from lots l
+   where l.winner_id = auth.uid()
+   order by l.payment_deadline desc nulls last;
+$$;
+
 create or replace function public.my_listings()
 returns setof lots language sql stable security definer set search_path=public as
 $$ select * from lots where seller_id = auth.uid() order by created_at desc $$;
