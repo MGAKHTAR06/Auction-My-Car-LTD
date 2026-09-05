@@ -7,154 +7,233 @@
 <link rel="stylesheet" href="assets/amc.css">
 <style>
   body{background:var(--grey)}
-  .adminbar{background:var(--navy);color:#fff;padding:14px 0}
+  .adminbar{background:var(--navy);color:#fff;padding:14px 0;border-bottom:4px solid var(--red-brand)}
   .adminbar .wrap{display:flex;align-items:center;gap:14px;flex-wrap:wrap}
-  .roleswitch{display:flex;background:rgba(255,255,255,.1);border-radius:9px;padding:3px}
-  .roleswitch button{border:none;background:transparent;color:#9fc0f5;font-weight:700;font-size:12.5px;padding:6px 12px;border-radius:7px}
-  .roleswitch button.on{background:#fff;color:var(--navy)}
-  .masteronly{position:relative}
-  .masteronly.locked{opacity:.45;pointer-events:none}
-  .masteronly.locked:after{content:"Master admin only";position:absolute;top:10px;right:12px;font-size:10.5px;font-weight:800;
-    letter-spacing:.06em;color:var(--red);background:var(--red-050);padding:3px 8px;border-radius:6px}
-  .kpis{display:grid;grid-template-columns:repeat(5,1fr);gap:12px;margin:18px 0}
-  @media(max-width:860px){.kpis{grid-template-columns:repeat(2,1fr)}}
+  .rolechip{background:rgba(255,255,255,.12);border-radius:8px;padding:5px 11px;font-size:12.5px;font-weight:700}
+  .kpis{display:grid;grid-template-columns:repeat(6,1fr);gap:12px;margin:18px 0}
+  @media(max-width:900px){.kpis{grid-template-columns:repeat(3,1fr)}}
   .kpi{background:#fff;border:1px solid var(--line);border-radius:12px;padding:12px 14px}
   .kpi .v{font-size:21px;font-weight:800}.kpi .l{font-size:11.5px;color:var(--muted);font-weight:600}
-  .cols{display:grid;grid-template-columns:1fr 1fr;gap:16px}
+  .cols{display:grid;grid-template-columns:1fr 1fr;gap:16px;margin-top:16px}
   @media(max-width:900px){.cols{grid-template-columns:1fr}}
+  .qcard{border:1px solid var(--line);border-radius:12px;padding:14px;margin-bottom:12px;background:#fff}
+  .qgrid{display:grid;grid-template-columns:repeat(3,1fr);gap:6px 14px;margin:10px 0;font-size:12.5px}
+  .qgrid .k{color:var(--muted);font-size:10px;text-transform:uppercase;letter-spacing:.05em;font-weight:700}
+  .damage{background:var(--amber-050);border:1px solid #f0d590;border-radius:9px;padding:9px 12px;font-size:13px;margin:8px 0}
+  .lockpanel{opacity:.45;pointer-events:none;position:relative}
 </style></head><body>
 
 <div class="adminbar"><div class="wrap">
   <b>🔒 Auction My Car · Admin</b>
-  <span style="font-size:12px;color:#9fc0f5">Hidden route · role-gated · noindex</span>
+  <span class="rolechip" id="rolechip">checking…</span>
   <div class="grow"></div>
-  <span style="font-size:12px;color:#9fc0f5">Viewing as:</span>
-  <div class="roleswitch">
-    <button id="r-sub" onclick="setRole('sub')">Sub-admin</button>
-    <button id="r-master" class="on" onclick="setRole('master')">Master admin</button>
-  </div>
+  <a class="btn ghost sm" style="background:transparent;color:#fff;border-color:rgba(255,255,255,.4)" href="index.html">← Back to site</a>
 </div></div>
 
 <div class="wrap" style="padding-bottom:60px">
+  <div id="gate" class="panel" style="margin-top:18px"><p class="help">Checking your access…</p></div>
 
-  <div class="panel masteronly" id="dashpanel" style="margin-top:18px">
-    <h3>Dashboard — revenue &amp; health</h3>
-    <div class="kpis">
-      <div class="kpi"><div class="v mono">£1,240</div><div class="l">Listing + featured fees (month)</div></div>
-      <div class="kpi"><div class="v mono">£4,485</div><div class="l">Auction fees (month)</div></div>
-      <div class="kpi"><div class="v mono">£185</div><div class="l">Verification fees</div></div>
-      <div class="kpi"><div class="v">9</div><div class="l">Lots this Saturday</div></div>
-      <div class="kpi"><div class="v" style="color:var(--red)">2</div><div class="l">Open cases</div></div>
+  <div id="panel" class="hide">
+    <div class="kpis" id="kpis"></div>
+
+    <div class="panel" id="auctionPanel">
+      <h3>Auction calendar</h3>
+      <p class="sub">Every Saturday starts automatically at its scheduled time unless skipped. Featured lots run first.</p>
+      <div id="auctionsBox"><p class="help">Loading…</p></div>
     </div>
-  </div>
 
-  <div class="cols" style="margin-top:16px">
-    <div class="panel">
-      <h3>Listing approval queue</h3><p class="sub">Check against guidelines + verify ownership (V5C pages, VIN photo).</p>
-      <div style="border:1px solid var(--line);border-radius:10px;padding:14px;margin-bottom:10px">
-        <b>2016 Nissan Qashqai 1.5 dCi — £25 paid · target: Sat 18 Jul</b>
-        <p class="help" style="margin:6px 0 10px">Damage box: "No damage except normal wear and tear." · V5C 4/4 pages ✓ · VIN photo ✓ · 8 photos</p>
-        <div style="display:flex;gap:8px">
-          <button class="btn green sm" onclick="toast('Approved — live for pre-bids; auction date now locked','good')">Approve</button>
-          <button class="btn danger sm" onclick="toast('Rejected with reason — seller can edit free and change auction date','warn')">Reject with reason</button>
-        </div>
+    <div class="cols">
+      <div class="panel">
+        <h3>Listing approval queue</h3>
+        <p class="sub">Check the details against the photos and V5C before approving. The damage box is the dispute reference — make sure it is honest.</p>
+        <div id="queueBox"><p class="help">Loading…</p></div>
       </div>
-      <div style="border:1px solid var(--line);border-radius:10px;padding:14px">
-        <b>2014 SEAT Leon 1.2 TSI — resubmission</b>
-        <p class="help" style="margin:6px 0 10px">Previous reason: undeclared cracked rear light. Damage box now updated ✓</p>
-        <div style="display:flex;gap:8px">
-          <button class="btn green sm" onclick="toast('Approved on resubmission','good')">Approve</button>
-          <button class="btn danger sm" onclick="toast('Rejected again with reason','warn')">Reject</button>
-        </div>
+
+      <div class="panel">
+        <h3>Recent outcomes</h3>
+        <p class="sub">What sold, for how much, and payment deadlines.</p>
+        <div id="recentBox"><p class="help">Loading…</p></div>
       </div>
     </div>
 
-    <div class="panel">
-      <h3>Handover approvals — fund release gate</h3><p class="sub">Match keeper slip to the listing's V5C; sanity-check the two videos.</p>
-      <div style="border:1px solid var(--line);border-radius:10px;padding:14px">
-        <b>Lot 0122 · Corsa (Cat S) — £1,750 held</b>
-        <table class="tbl" style="margin-top:8px">
-          <tr><td>Buyer: keeper slip</td><td><span class="tag g">Uploaded ✓</span></td></tr>
-          <tr><td>Buyer: videos (outside + inside)</td><td><span class="tag g">Uploaded ✓ · matches listing</span></td></tr>
-          <tr><td>Seller: V5C proof of posting</td><td><span class="tag a">Pending</span></td></tr>
-        </table>
-        <div style="display:flex;gap:8px;margin-top:10px">
-          <button class="btn green sm" disabled>Release £1,750 to seller</button>
-          <button class="btn ghost sm" onclick="toast('Seller nudged by email (demo)','warn')">Nudge seller</button>
-        </div>
+    <div class="cols">
+      <div class="panel" id="settingsPanel">
+        <h3>Settings — all data, never code <span class="tag r" id="masterTag1" style="display:none">Master only</span></h3>
+        <div id="settingsBox"><p class="help">Loading…</p></div>
       </div>
-    </div>
-  </div>
 
-  <div class="cols" style="margin-top:16px">
-    <div class="panel">
-      <h3>Flags — Report a problem</h3><p class="sub">Fine accrues unless the reason is valid. Your ruling needs written reasoning.</p>
-      <div style="border:1px solid var(--line);border-radius:10px;padding:14px">
-        <b>Lot 0114 · buyer flags seller — no contact for 5 days</b>
-        <p class="help" style="margin:6px 0">Screenshots ✓ (4 unanswered texts) · seller auto-notified · accrual so far <b class="mono" style="color:var(--red)">£25</b> of £70 cap · day 8 of 14</p>
-        <div class="field"><label>Ruling reasoning (required)</label><textarea placeholder="e.g. Spoke to seller 4 Jul — hospital admission evidenced. Valid reason."></textarea></div>
-        <div style="display:flex;gap:8px;flex-wrap:wrap">
-          <button class="btn green sm" onclick="toast('Valid reason — fine wiped. If day 14 lapses: sale falls, buyer refunded, free relist, optional buyer credit.','good')">Valid — wipe fine</button>
-          <button class="btn danger sm" onclick="toast('Not valid — fine stands. Day 14: buyer fully refunded; seller pays £70 + processing fee (deduct or invoice).','bad')">Not valid — fine stands</button>
-          <button class="btn ghost sm" onclick="toast('Buyer credit: you set amount, expiry and reasoning — auto-applies at their next winning checkout','warn')">Grant buyer credit…</button>
-        </div>
+      <div class="panel" id="usersPanel">
+        <h3>Members <span class="tag r" id="masterTag2" style="display:none">Master only</span></h3>
+        <div id="usersBox"><p class="help">Loading…</p></div>
       </div>
     </div>
 
-    <div class="panel">
-      <h3>Disputes</h3><p class="sub">Open: assigned admin only. Closed: master admin only, with logged access grants.</p>
-      <div style="border:1px solid var(--line);border-radius:10px;padding:14px;margin-bottom:10px">
-        <div style="display:flex;justify-content:space-between"><b>D-0031 · Lot 0107 — undeclared sill rot</b><span class="tag a">Open · assigned: S. Khan</span></div>
-        <p class="help" style="margin:6px 0">Intake ✓ (photos + video) · clocks frozen · seller emailed 3 Jul · buyer call recorded 4 Jul ✓</p>
-        <div class="field"><label>Written ruling (required to close)</label><textarea placeholder="Findings and decision…"></textarea></div>
-        <div style="display:flex;gap:8px;flex-wrap:wrap">
-          <button class="btn sm" onclick="toast('Upheld: buyer fully refunded, no car; seller loses £25 listing fee; relist only as new £25 listing declaring the damage','good')">Uphold — refund buyer</button>
-          <button class="btn ghost sm" onclick="toast('Rejected: deal stands. Buyer completes, or exits: £100 to the seller, £50 to the platform','warn')">Reject — deal stands</button>
-        </div>
-      </div>
-      <div class="masteronly" id="closedcases" style="border:1px solid var(--line);border-radius:10px;padding:14px;background:var(--grey)">
-        <div style="display:flex;justify-content:space-between"><b>D-0027 · closed 12 Jun — upheld</b><span class="tag m">Master-only archive</span></div>
-        <p class="help" style="margin:6px 0">Full evidence file: intake, email trail, 3 call recordings, written ruling.</p>
-        <button class="btn ghost sm" onclick="toast('Access grant logged: grantee, granted-by, timestamp, reason','warn')">Grant access to an admin…</button>
-      </div>
-    </div>
-  </div>
-
-  <div class="cols" style="margin-top:16px">
-    <div class="panel masteronly" id="settings">
-      <h3>Settings — all data, never code</h3>
-      <table class="tbl">
-        <tr><td><b>VAT</b> — flip on the day the company registers</td><td style="text-align:right">
-          <button class="btn ghost sm" id="vatbtn" onclick="vat=!vat;this.textContent=vat?'ON · 20%':'OFF';toast(vat?'VAT now applied to listing + auction fees':'VAT off','warn')">OFF</button></td></tr>
-        <tr><td>Listing fee</td><td class="mono" style="text-align:right">£25</td></tr>
-        <tr><td>Featured fee / slots</td><td class="mono" style="text-align:right">£10 · 21</td></tr>
-        <tr><td>Verification fee</td><td class="mono" style="text-align:right">£5</td></tr>
-        <tr><td>Deposit / min bid</td><td class="mono" style="text-align:right">£50 · £150</td></tr>
-        <tr><td>Increments</td><td class="mono" style="text-align:right">£50 / £100 / £200</td></tr>
-        <tr><td>Hammer timers</td><td class="mono" style="text-align:right">15s · 30s featured</td></tr>
-        <tr><td>Payment / collection windows</td><td class="mono" style="text-align:right">72h · 72h + 14d cap</td></tr>
-        <tr><td>Fee schedule (33 bands, from Bidding_fee.ods)</td><td style="text-align:right"><button class="btn ghost sm" onclick="toast('Band editor — production build','warn')">Edit bands…</button></td></tr>
-      </table>
-    </div>
-    <div class="panel masteronly" id="roles">
-      <h3>Auctions &amp; roles</h3>
-      <table class="tbl">
-        <tr><td>Saturday's auction · 9 lots</td><td style="text-align:right"><button class="btn ghost sm" onclick="toast('Running order: featured first-paid-first-placed, then admin-set/random','warn')">Set running order…</button></td></tr>
-        <tr><td>S. Khan — sub-admin</td><td style="text-align:right"><span class="tag b">Listings · Handover · Disputes</span></td></tr>
-        <tr><td>Add sub-admin</td><td style="text-align:right"><button class="btn ghost sm" onclick="toast('Scoped sub-admin creation — production build','warn')">Create…</button></td></tr>
-      </table>
+    <div class="panel" style="margin-top:16px;background:var(--blue-050);border-color:#cdd9ec">
+      <b>Coming with later phases</b>
+      <p class="help" style="margin:6px 0 0">Handover evidence approvals and fund release (phase 3, with Stripe) · Report-a-problem flags and the dispute desk with the evidence archive (phase 4, with uploads and recordings).</p>
     </div>
   </div>
 </div>
 
 <script src="assets/amc.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script src="assets/api.js"></script>
 <script>
-  let vat=false;
-  function setRole(r){
-    document.getElementById('r-sub').classList.toggle('on',r==='sub');
-    document.getElementById('r-master').classList.toggle('on',r==='master');
-    document.querySelectorAll('.masteronly').forEach(el=>el.classList.toggle('locked',r==='sub'));
-    toast(r==='master'?'Master admin: full control':'Sub-admin: approvals, handover, flags, assigned disputes only','warn');
+  const $=id=>document.getElementById(id);
+  const gbp=p=>'£'+Math.round((p||0)/100).toLocaleString('en-GB');
+  let ME=null, MASTER=false;
+
+  async function boot(){
+    ME = await API.me().catch(()=>null);
+    if(!ME || !ME.profile || !ME.profile.is_admin){
+      $('gate').innerHTML='<b>Admins only.</b><p class="help" style="margin-top:6px">This page is restricted. Redirecting…</p>';
+      setTimeout(()=>location.href='index.html', 1800);
+      return;
+    }
+    MASTER = !!ME.profile.is_master;
+    $('rolechip').textContent = MASTER ? 'Master admin — full control' : 'Sub-admin — approvals & operations';
+    $('gate').classList.add('hide'); $('panel').classList.remove('hide');
+    loadStats(); loadAuctions(); loadQueue(); loadRecent(); loadSettings(); loadUsers();
   }
+
+  async function loadStats(){
+    try{
+      const s = await API.adminStats();
+      const n = s.next_auction;
+      $('kpis').innerHTML = `
+        <div class="kpi"><div class="v">${s.members}</div><div class="l">Members</div></div>
+        <div class="kpi"><div class="v" style="color:var(--green)">${s.verified}</div><div class="l">Verified</div></div>
+        <div class="kpi"><div class="v" style="color:var(--amber-900)">${s.pending}</div><div class="l">Awaiting approval</div></div>
+        <div class="kpi"><div class="v">${s.listed}</div><div class="l">Live lots</div></div>
+        <div class="kpi"><div class="v" style="color:var(--green)">${s.sold}</div><div class="l">Sold</div></div>
+        <div class="kpi"><div class="v">${n?n.entries:0}</div><div class="l">Entered next auction</div></div>`;
+    }catch(e){ $('kpis').innerHTML='<p class="err">'+e.message+'</p>'; }
+  }
+
+  async function loadAuctions(){
+    try{
+      const rows = await API.upcomingAuctions();
+      const st = await API.liveState().catch(()=>null);
+      let liveNote='';
+      if(st && st.status==='live') liveNote =
+        `<div class="statusbar sb-win" style="border-radius:10px;margin-bottom:12px">● LIVE NOW — lot on the block: ${st.current?st.current.make+' '+st.current.model:''} · <a href="live.html" style="color:inherit;text-decoration:underline">open the room</a></div>`;
+      $('auctionsBox').innerHTML = liveNote + (rows.length ? `<table class="tbl">
+        <tr><th>Saturday</th><th>Status</th><th style="text-align:right">Actions</th></tr>
+        ${rows.map((a,i)=>`<tr>
+          <td><b>${new Date(a.starts_at).toLocaleDateString('en-GB',{weekday:'short',day:'numeric',month:'short'})}</b> · 8:00 AM</td>
+          <td>${a.skipped?'<span class="tag r">Skipped</span>':'<span class="tag g">Scheduled — auto-starts</span>'}</td>
+          <td style="text-align:right">
+            <button class="btn ghost sm" onclick="toggleSkip('${a.id}',${a.skipped})">${a.skipped?'Un-skip':'Skip'}</button>
+            ${i===0&&!a.skipped?`<button class="btn sm" onclick="startNow('${a.id}')">Start now</button>`:''}
+          </td></tr>`).join('')}
+      </table>` : '<p class="help">No upcoming auctions — the cron creates the next four Saturdays each minute.</p>');
+    }catch(e){ $('auctionsBox').innerHTML='<p class="err">'+e.message+'</p>'; }
+  }
+  async function toggleSkip(id,cur){
+    try{ await API.setSkipped(id,!cur); toast(cur?'Auction restored':'Auction skipped','warn'); loadAuctions(); }
+    catch(e){ toast(e.message,'bad'); }
+  }
+  async function startNow(id){
+    if(!confirm('Start this auction right now? Lots will begin hammering immediately.')) return;
+    try{ await API.startAuction(id); toast('Auction is LIVE','good'); loadAuctions(); }
+    catch(e){ toast(e.message,'bad'); }
+  }
+
+  async function loadQueue(){
+    try{
+      const rows = await API.adminPending();
+      $('queueBox').innerHTML = rows.length ? rows.map(l=>`
+        <div class="qcard">
+          <div style="display:flex;justify-content:space-between;gap:8px;flex-wrap:wrap;align-items:center">
+            <b>${l.year} ${l.make} ${l.model} ${l.featured?'★':''}</b>
+            <span class="help">by ${l.seller_name||'unnamed'} · target ${new Date(l.auction_starts).toLocaleDateString('en-GB',{day:'numeric',month:'short'})}</span>
+          </div>
+          <div class="qgrid">
+            <div><div class="k">Reg</div>${l.reg||'—'}</div>
+            <div><div class="k">VIN</div><span class="mono" style="font-size:11px">${l.vin||'—'}</span></div>
+            <div><div class="k">Mileage</div>${(l.mileage||0).toLocaleString()} mi</div>
+            <div><div class="k">Title</div>${CATNAME[l.cat]}</div>
+            <div><div class="k">Start</div>${gbp(l.start_pence)}</div>
+            <div><div class="k">Reserve</div>${l.reserve_pence?gbp(l.reserve_pence):'none'}</div>
+          </div>
+          <div class="damage"><b>Damage declaration:</b> ${l.damage}</div>
+          <p class="help" style="margin:6px 0 10px">${l.description||''}</p>
+          <div style="display:flex;gap:8px">
+            <button class="btn green sm" onclick="approve('${l.id}')">Approve</button>
+            <button class="btn danger sm" onclick="reject('${l.id}')">Reject with reason</button>
+          </div>
+        </div>`).join('') : '<p class="help">Queue clear — nothing awaiting review.</p>';
+    }catch(e){ $('queueBox').innerHTML='<p class="err">'+e.message+'</p>'; }
+  }
+  async function approve(id){
+    try{ await API.approveListing(id); toast('Approved — live for pre-bids, auction date locked','good'); loadQueue(); loadStats(); }
+    catch(e){ toast(e.message,'bad'); }
+  }
+  async function reject(id){
+    const reason = prompt('Reason for rejection (the seller sees this and can edit + resubmit free):');
+    if(!reason) return;
+    try{ await API.rejectListing(id, reason); toast('Rejected — seller notified with your reason','warn'); loadQueue(); loadStats(); }
+    catch(e){ toast(e.message,'bad'); }
+  }
+
+  async function loadRecent(){
+    try{
+      const rows = await API.adminRecent();
+      $('recentBox').innerHTML = rows.length ? `<table class="tbl">
+        <tr><th>Lot</th><th>Outcome</th><th style="text-align:right">Top bid</th></tr>
+        ${rows.map(r=>`<tr>
+          <td>Lot ${String(r.lot_no).padStart(4,'0')} · ${r.make} ${r.model}<div class="help">seller: ${r.seller_name||'—'}</div></td>
+          <td>${r.status==='sold'
+                ? '<span class="tag g">SOLD</span>'+(r.payment_deadline?'<div class="help">pay by '+new Date(r.payment_deadline).toLocaleString('en-GB',{day:'numeric',month:'short',hour:'2-digit',minute:'2-digit'})+'</div>':'')
+                : '<span class="tag m">'+r.status+'</span>'}</td>
+          <td style="text-align:right" class="mono">${r.top_pence?gbp(r.top_pence):'—'}</td></tr>`).join('')}
+      </table>` : '<p class="help">No outcomes yet — results appear after lots hammer.</p>';
+    }catch(e){ $('recentBox').innerHTML='<p class="err">'+e.message+'</p>'; }
+  }
+
+  const SHOW_SETTINGS=[['listing_fee','Listing fee'],['featured_fee','Featured fee'],['featured_cap','Featured slots'],
+    ['verify_fee','Verification fee'],['deposit','Deposit'],['min_bid','Minimum first bid'],
+    ['timer_standard','Standard hammer (s)'],['timer_featured','Featured hammer (s)'],['payment_window_hours','Payment window (h)']];
+  async function loadSettings(){
+    if(!MASTER){ $('settingsPanel').classList.add('lockpanel'); $('masterTag1').style.display='inline-block';
+      $('settingsBox').innerHTML='<p class="help">Only the master admin can view or change platform settings.</p>'; return; }
+    try{
+      const { data, error } = await sb.from('settings').select('*');
+      if(error) throw error;
+      const map={}; (data||[]).forEach(r=>map[r.key]=r.value);
+      const vat = map.vat||{enabled:false,rate:0.2};
+      const money=k=>['listing_fee','featured_fee','verify_fee','deposit','min_bid'].includes(k);
+      $('settingsBox').innerHTML = `<table class="tbl">
+        <tr><td><b>VAT</b> — flip on the day the company registers</td>
+            <td style="text-align:right"><button class="btn ${vat.enabled?'':'ghost'} sm" onclick="toggleVat(${vat.enabled})">${vat.enabled?'ON · 20%':'OFF'}</button></td></tr>
+        ${SHOW_SETTINGS.map(([k,label])=>`<tr><td>${label}</td>
+            <td class="mono" style="text-align:right">${map[k]!=null?(money(k)?gbp(map[k]):map[k]):'—'}</td></tr>`).join('')}
+        <tr><td>Fee schedule</td><td style="text-align:right"><span class="help">33 bands · edit in Supabase → fee_schedule</span></td></tr>
+      </table>`;
+    }catch(e){ $('settingsBox').innerHTML='<p class="err">'+e.message+'</p>'; }
+  }
+  async function toggleVat(cur){
+    try{ await API.adminSetSetting('vat',{enabled:!cur,rate:0.20});
+      toast(!cur?'VAT ON — applies to platform fees':'VAT off','warn'); loadSettings(); }
+    catch(e){ toast(e.message,'bad'); }
+  }
+
+  async function loadUsers(){
+    if(!MASTER){ $('usersPanel').classList.add('lockpanel'); $('masterTag2').style.display='inline-block';
+      $('usersBox').innerHTML='<p class="help">Only the master admin can view the member list.</p>'; return; }
+    try{
+      const rows = await API.adminUsers();
+      $('usersBox').innerHTML = `<table class="tbl">
+        <tr><th>Member</th><th>Status</th></tr>
+        ${rows.map(u=>`<tr>
+          <td>${u.name||'—'}<div class="help">${u.email}</div></td>
+          <td>${u.verified?'<span class="tag g">Verified</span>':'<span class="tag m">Unverified</span>'}
+              ${u.is_master?'<span class="tag r">Master</span>':u.is_admin?'<span class="tag b">Admin</span>':''}</td>
+        </tr>`).join('')}
+      </table>`;
+    }catch(e){ $('usersBox').innerHTML='<p class="err">'+e.message+'</p>'; }
+  }
+
+  boot();
 </script>
 </body></html>
