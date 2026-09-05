@@ -97,6 +97,11 @@ const API = {
     const { data } = await sb.rpc('lot_bid_history', { p_lot: id });
     return data || [];
   },
+  async myBids(){
+    const { data, error } = await sb.rpc('my_bids');
+    if (error) throw error;
+    return data || [];
+  },
   async myListings(){
     const { data, error } = await sb.rpc('my_listings');
     if (error) throw error;
