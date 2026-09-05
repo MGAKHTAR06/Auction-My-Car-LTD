@@ -122,10 +122,19 @@
   </div>`;
   }
 
+  let lastSig=null, watching=false;
   async function loadLot(){
     try{
       const r=await API.lot(id);
       if(!r){ toast('Lot not found or not yet approved','bad'); setTimeout(()=>location.href='browse.html',1400); return; }
+      // only re-render when the price or bid count actually changed
+      const sig = r.current_pence+'-'+r.bid_count;
+      if(sig===lastSig) return;
+      const wasLeading = lastSig!==null;
+      lastSig = sig;
+      // preserve whatever the user is typing in the bid box
+      const inp=document.getElementById('bidAmt');
+      const typed=inp?inp.value:'', hadFocus=inp&&document.activeElement===inp;
       l=liveLotToCard(r);
       l.desc=r.description; l.damage=r.damage||''; l.trans=r.transmission||''; l.owners=r.owners;
       l.mot=r.mot||''; l.vin=r.vin||''; l.mine=r.seller_is_me;
@@ -133,7 +142,14 @@
       const h=await API.bidHistory(id).catch(()=>[]);
       history=h.map(b=>({who:b.masked, amt:Math.round(b.amount/100)}));
       renderPage();
-      try{ API.watchBids(id, b=>{ toast('New bid: '+fmt(Math.round(b.amount/100)),'warn'); loadLot(); }); }catch(e){}
+      // put the user's half-typed bid back
+      const inp2=document.getElementById('bidAmt');
+      if(inp2&&typed){ inp2.value=typed; if(hadFocus) inp2.focus(); }
+      if(wasLeading) toast('Price updated: now '+fmt(Math.round(r.current_pence/100)),'warn');
+      if(!watching){
+        watching=true;
+        try{ API.watchBids(id, b=>{ loadLot(); }); }catch(e){}
+      }
       document.getElementById('similar').innerHTML='';
       API.browse().then(rows=>{
         document.getElementById('similar').innerHTML=rows.filter(x=>x.id!==id).slice(0,3).map(r2=>lotCard(liveLotToCard(r2))).join('')||'';
