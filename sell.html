@@ -131,7 +131,8 @@
           ? { id: upcoming[F.week].id }
           : API.nextAuction())
         .then(a=>{ F.auctionId=a.id; return API.createListing(F); })
-        .then(()=>{ toast(`Listing submitted to the live database — £${LISTING_FEE+(F.feat?FEATURED_FEE:0)} payment attaches in phase 3`,'good'); step++; draw(); window.scrollTo({top:0,behavior:'smooth'}); })
+        .then(lotId=>{ toast('Taking you to secure payment…','good'); return API.payListing(lotId); })
+        .then(url=>{ location.href=url; })
         .catch(e=>toast(e.message||'Could not submit listing','bad'));
       return;
     }
